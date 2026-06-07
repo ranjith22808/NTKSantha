@@ -42,7 +42,7 @@
     <!-- MAIN APP -->
     <div id="app-screen" class="hidden">
         <header class="bg-red-700 text-white shadow-md sticky top-0 z-40 px-4 py-3 text-center">
-            <h1 class="text-xl font-bold tracking-wide">நாம் தமிழர் கட்சி <span class="version-badge">v2.2.0 (Manual Member ID)</span></h1>
+            <h1 class="text-xl font-bold tracking-wide">நாம் தமிழர் கட்சி <span class="version-badge">v2.3.0 (Area Filter Suggestions)</span></h1>
             <p class="text-xs text-yellow-300 font-semibold">காட்டுமன்னார்கோவில் மண்டலம் (சந்தா வசூல்)</p>
             <div class="text-[10px] text-gray-200 mt-1 flex justify-between px-2">
                 <span id="user-display-name">கையாலர்: Loading...</span>
@@ -99,13 +99,17 @@
                 </div>
             </section>
 
-            <!-- REPORTS TAB -->
+            <!-- REPORTS TAB with Area Filter Dropdown Suggestions -->
             <section id="tab-reports" class="tab-content space-y-4">
                 <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
                     <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2"><i class="fa-solid fa-chart-line text-purple-600 mr-2"></i>வசூல் அறிக்கைகள்</h3>
                     <div class="grid grid-cols-2 gap-2 mb-4 bg-gray-50 p-3 rounded-lg border">
                         <div><label class="block text-[11px] font-bold">மாத வடிப்பான்</label><input type="month" id="filter-month" class="w-full p-2 text-xs border rounded"></div>
-                        <div><label class="block text-[11px] font-bold">ஊர் வடிப்பான்</label><input type="text" id="filter-area" placeholder="ஊர் பெயர்" class="w-full p-2 text-xs border rounded"></div>
+                        <div>
+                            <label class="block text-[11px] font-bold">ஊர் வடிப்பான்</label>
+                            <input type="text" id="filter-area" list="filter-area-suggestions" placeholder="ஊர் பெயர்" class="w-full p-2 text-xs border rounded bg-white">
+                            <datalist id="filter-area-suggestions"></datalist>
+                        </div>
                         <div class="col-span-2 mt-2"><button id="btn-apply-filters" class="w-full bg-slate-700 text-white font-bold p-2 text-xs rounded-lg">வடிப்பானைச் செயல்படுத்து</button></div>
                     </div>
                     <div class="grid grid-cols-2 gap-2 mb-4"><div class="bg-green-50 p-3 rounded-lg text-center"><span class="text-xs text-green-700 font-semibold">மொத்த வசூல்</span><span id="stat-total-amount" class="text-xl font-bold text-green-900 block">₹0</span></div><div class="bg-blue-50 p-3 rounded-lg text-center"><span class="text-xs text-blue-700 font-semibold">ரசீதுகள்</span><span id="stat-total-count" class="text-xl font-bold text-blue-900 block">0</span></div></div>
@@ -169,7 +173,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
         import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, addDoc, getDoc, getDocs, updateDoc, deleteDoc, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, addDoc, getDoc, getDocs, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyDMBvbjbzUgzsRwW8HriMwcqEojj4MNZDs", authDomain: "ntk-santha-app.firebaseapp.com", projectId: "ntk-santha-app", storageBucket: "ntk-santha-app.firebasestorage.app", messagingSenderId: "522106262108", appId: "1:522106262108:web:6275fcb9c99ece7fcd0c99", measurementId: "G-9E9K06RXHY" };
         const app = initializeApp(firebaseConfig);
@@ -178,7 +182,7 @@
         const db = getFirestore(app);
 
         let currentUserProfile = null;
-        let cachedMembers = []; // each object: { id: firebaseDocId, memberId, name, mobile, area }
+        let cachedMembers = [];
         let confirmationResult = null;
 
         window.setupRecaptcha = () => { window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'normal' }); };
@@ -211,7 +215,7 @@
                     await loadMembersData();
                     loadCollectorsList();
                     loadCollectionsStream();
-                    populateSuggestions();
+                    populateAllSuggestions();
                     const today = new Date();
                     document.getElementById('coll-month').value = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
                 } else { signOut(auth); alert("அனுமதி இல்லை"); }
@@ -226,12 +230,12 @@
             document.getElementById(btn.getAttribute('data-target')).classList.add('active');
         }));
 
-        // MEMBERS CRUD with manual unique Member ID
+        // MEMBERS CRUD
         async function loadMembersData() {
             const snap = await getDocs(collection(db, "members"));
             cachedMembers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             renderMembersDirectory(cachedMembers);
-            populateSuggestions();
+            populateAllSuggestions();
         }
         function renderMembersDirectory(arr) {
             const container = document.getElementById('members-list-container');
@@ -256,12 +260,10 @@
             document.querySelector('[data-target="tab-collection"]').click();
         };
         
-        // Add member with manual ID uniqueness check
         document.getElementById('form-add-member').addEventListener('submit', async (e) => {
             e.preventDefault();
             const manualId = document.getElementById('mem-id-manual').value.trim();
             if(!manualId) { alert("உறுப்பினர் ID கட்டாயமாகும்"); return; }
-            // Check uniqueness
             const existing = cachedMembers.find(m => m.memberId === manualId);
             if(existing) { alert("இந்த Member ID ஏற்கனவே உள்ளது. தயவு செய்து வேறு ID ஐ உள்ளிடவும்."); return; }
             let mobile = document.getElementById('mem-mobile').value.trim();
@@ -326,7 +328,7 @@
                 m.mobile.includes(txt))); 
         });
         
-        // COLLECTION with manual member ID stored
+        // COLLECTION
         async function loadCollectionsStream(filterMonth = '', filterArea = '') {
             const q = query(collection(db, "collections"), orderBy("date", "desc"));
             const snap = await getDocs(q);
@@ -388,18 +390,24 @@
         document.getElementById('btn-apply-filters').addEventListener('click', () => loadCollectionsStream(document.getElementById('filter-month').value, document.getElementById('filter-area').value.trim()));
         document.getElementById('btn-export-csv').addEventListener('click', () => { if(window.currentCsvData?.length>1){ let csv = "\uFEFF" + window.currentCsvData.map(row=>row.map(cell=>`"${cell}"`).join(",")).join("\n"); const blob = new Blob([csv],{type:"text/csv"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`NTK_Report_${new Date().toISOString().split('T')[0]}.csv`; a.click(); } else alert("தரவு இல்லை"); });
         
-        // COLLECTORS ADMIN (no changes needed)
+        // COLLECTORS ADMIN
         async function loadCollectorsList() { if(currentUserProfile?.role !== 'admin') return; const snap = await getDocs(collection(db,"collectors")); let html = ''; snap.forEach(docSnap=>{ const data=docSnap.data(); html+=`<div class="py-2 flex justify-between items-center border-b"><div><p class="font-bold">${escapeHtml(data.name)}</p><p class="text-[10px] text-gray-500">${docSnap.id} | ${data.role}</p></div><div class="flex gap-2">${docSnap.id !== currentUserProfile.phone ? `<button onclick="window.openEditCollectorModal('${docSnap.id}','${escapeHtml(data.name)}','${data.role}')" class="text-blue-500"><i class="fa-solid fa-pen"></i></button><button onclick="window.deleteCollector('${docSnap.id}')" class="text-red-500"><i class="fa-solid fa-trash"></i></button>` : `<span class="text-gray-400 text-xs">தற்போதைய</span>`}</div></div>`; }); document.getElementById('collectors-list-container').innerHTML = html || "<p class='text-gray-400 text-xs'>பதிவு இல்லை</p>"; }
         window.openEditCollectorModal = (phone, name, role) => { document.getElementById('edit-collector-phone').value = phone; document.getElementById('edit-collector-name').value = name; document.getElementById('edit-collector-role').value = role; document.getElementById('edit-collector-modal').classList.remove('hidden'); document.getElementById('edit-collector-modal').style.display = 'flex'; };
         document.getElementById('confirm-collector-update').addEventListener('click', async () => { const phone = document.getElementById('edit-collector-phone').value; await updateDoc(doc(db,"collectors", phone), { name: document.getElementById('edit-collector-name').value, role: document.getElementById('edit-collector-role').value }); closeModals(); loadCollectorsList(); });
         window.deleteCollector = async (phone) => { if(phone === currentUserProfile.phone) return alert("உங்கள் கணக்கை நீக்க முடியாது"); if(confirm("கையாளரை நீக்கவும்?")) { await deleteDoc(doc(db,"collectors", phone)); loadCollectorsList(); } };
         document.getElementById('form-add-collector').addEventListener('submit', async (e) => { e.preventDefault(); const phone = document.getElementById('coll-new-mobile').value.trim(); await setDoc(doc(db,"collectors", phone), { name: document.getElementById('coll-new-name').value, role: document.getElementById('coll-new-role').value }); alert("புதிய கையாளர் சேர்க்கப்பட்டார்"); document.getElementById('form-add-collector').reset(); document.getElementById('coll-new-mobile').value="+91"; loadCollectorsList(); });
         
-        function populateSuggestions() { 
-            const names = [...new Set(cachedMembers.map(m=>m.name))]; 
-            const areas = [...new Set(cachedMembers.map(m=>m.area))]; 
-            document.getElementById('name-suggestions').innerHTML = names.map(n=>`<option value="${escapeHtml(n)}">`).join(''); 
+        // Populate all suggestion lists (name, area for add member, AND area filter dropdown)
+        function populateAllSuggestions() {
+            const names = [...new Set(cachedMembers.map(m=>m.name))];
+            const areas = [...new Set(cachedMembers.map(m=>m.area))];
+            document.getElementById('name-suggestions').innerHTML = names.map(n=>`<option value="${escapeHtml(n)}">`).join('');
             document.getElementById('area-suggestions').innerHTML = areas.map(a=>`<option value="${escapeHtml(a)}">`).join('');
+            // Also populate filter area datalist
+            const filterAreaDatalist = document.getElementById('filter-area-suggestions');
+            if(filterAreaDatalist) {
+                filterAreaDatalist.innerHTML = areas.map(a=>`<option value="${escapeHtml(a)}">`).join('');
+            }
         }
         window.closeModals = () => { document.getElementById('edit-member-modal').classList.add('hidden'); document.getElementById('edit-collector-modal').classList.add('hidden'); document.getElementById('edit-member-modal').style.display = 'none'; document.getElementById('edit-collector-modal').style.display = 'none'; };
         function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m === '&') return '&amp;'; if(m === '<') return '&lt;'; if(m === '>') return '&gt;'; return m;}); }
