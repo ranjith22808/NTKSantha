@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NTK Santha Collection</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#d32f2f">
+    <style>
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .nav-btn.active { color: #facc15; border-top: 3px solid #facc15; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans pb-20">
+
+    <div id="auth-screen" class="fixed inset-0 bg-slate-900 z-50 flex flex-col justify-center items-center p-6 text-white">
+        <div class="w-full max-w-md bg-slate-800 p-6 rounded-2xl shadow-xl text-center border border-slate-700">
+            <h1 class="text-2xl font-bold text-yellow-400 mb-1">நாம் தமிழர் கட்சி</h1>
+            <h2 class="text-md text-gray-300 font-medium mb-6">காட்டுமன்னார்கோவில் மண்டலம்</h2>
+            <p class="text-sm text-gray-400 mb-4">மாதாந்திர சந்தா கணக்கு பதிவேடு</p>
+            
+            <div id="phone-auth-container">
+                <input type="tel" id="login-phone" placeholder="கைபேசி எண் (+91xxxxxxxxx)" value="+91" class="w-full p-3 rounded-lg bg-slate-700 text-white border border-slate-600 mb-4 focus:outline-none focus:border-yellow-400">
+                <div id="recaptcha-container" class="mb-4 flex justify-center"></div>
+                <button id="btn-send-otp" class="w-full bg-yellow-500 hover:bg-yellow-600 text-slate-900 font-bold p-3 rounded-lg transition">OTP அனுப்பவும்</button>
+            </div>
+
+            <div id="otp-auth-container" class="hidden mt-4">
+                <input type="text" id="login-otp" placeholder="6-இலக்க OTP எண்" class="w-full p-3 rounded-lg bg-slate-700 text-white border border-slate-600 mb-4 tracking-widest text-center text-xl focus:outline-none focus:border-yellow-400">
+                <button id="btn-verify-otp" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold p-3 rounded-lg transition">சரிபார்க்கவும்</button>
+            </div>
+            <p id="auth-error" class="text-red-400 text-sm mt-3 hidden"></p>
+        </div>
+    </div>
+
+    <div id="app-screen" class="hidden">
+        <header class="bg-red-700 text-white shadow-md sticky top-0 z-40 px-4 py-3 text-center">
+            <h1 class="text-xl font-bold tracking-wide">நாம் தமிழர் கட்சி</h1>
+            <p class="text-xs text-yellow-300 font-semibold">காட்டுமன்னார்கோவில் மண்டலம் (சந்தா வசூல்)</p>
+            <div class="text-[10px] text-gray-200 mt-1 flex justify-between px-2">
+                <span id="user-display-name">கையாலர்: Loading...</span>
+                <button id="btn-logout" class="underline text-yellow-300">வெளியேற</button>
+            </div>
+        </header>
+
+        <main class="max-w-md mx-auto p-4">
+            
+            <section id="tab-collection" class="tab-content active space-y-4">
+                <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2"><i class="fa-solid fa-money-bill-wave text-green-600 mr-2"></i>சந்தா வசூல் படிவம்</h3>
+                    
+                    <div class="mb-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                        <label class="block text-xs font-bold text-gray-600 mb-1">உறுப்பினர் தேடல் (பெயர் / எண் / ஊர்)</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="search-member-input" placeholder="இங்கே தேடவும்..." class="w-full p-2 text-sm border rounded-lg bg-white">
+                        </div>
+                        <div id="search-results-dropdown" class="mt-2 max-h-40 overflow-y-auto divide-y bg-white border rounded shadow-inner hidden"></div>
+                    </div>
+
+                    <form id="form-collection" class="space-y-3">
+                        <input type="hidden" id="coll-member-id">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">உறுப்பினர் பெயர் *</label>
+                            <input type="text" id="coll-name" readonly required class="w-full p-2.5 text-sm bg-gray-100 border rounded-lg font-semibold text-gray-800" placeholder="மேலே தேடி தேர்வு செய்யவும்">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">கைபேசி எண் *</label>
+                            <input type="tel" id="coll-mobile" readonly required class="w-full p-2.5 text-sm bg-gray-100 border rounded-lg text-gray-700">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">ஊர் / பகுதி *</label>
+                            <input type="text" id="coll-area" readonly required class="w-full p-2.5 text-sm bg-gray-100 border rounded-lg text-gray-700">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">சந்தா மாதம் *</label>
+                                <input type="month" id="coll-month" required class="w-full p-2.5 text-sm border rounded-lg bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">தொகை (₹) *</label>
+                                <input type="number" id="coll-amount" value="100" min="1" required class="w-full p-2.5 text-sm border rounded-lg bg-white font-bold text-green-700">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">வசூலிப்பவர்</label>
+                            <input type="text" id="coll-by" readonly class="w-full p-2.5 text-sm bg-gray-100 border rounded-lg text-gray-500">
+                        </div>
+                        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold p-3 rounded-lg shadow mt-2 flex justify-center items-center gap-2">
+                            <i class="fa-solid fa-receipt"></i> ரசீது சேமி & வாட்ஸ்அப் அனுப்பவும்
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <section id="tab-members" class="tab-content space-y-4">
+                <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2"><i class="fa-solid fa-user-plus text-blue-600 mr-2"></i>புதிய உறுப்பினர் சேர்க்கை</h3>
+                    <form id="form-add-member" class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">பெயர் (Name) *</label>
+                            <input type="text" id="mem-name" required class="w-full p-2.5 text-sm border rounded-lg bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">கைபேசி எண் (Mobile) *</label>
+                            <input type="tel" id="mem-mobile" placeholder="9176xxxxxx" required class="w-full p-2.5 text-sm border rounded-lg bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">ஊர் / பகுதி (Area) *</label>
+                            <input type="text" id="mem-area" required class="w-full p-2.5 text-sm border rounded-lg bg-white">
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold p-2.5 rounded-lg shadow text-sm">
+                            உறுப்பினரைச் சேர்
+                        </button>
+                    </form>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
+                    <h3 class="text-md font-bold text-gray-800 mb-2">உறுப்பினர்கள் பட்டியல்</h3>
+                    <input type="text" id="directory-search" placeholder="பட்டியலை வடிக்கவும் (பெயர்/ஊர்)..." class="w-full p-2 text-sm border rounded-lg mb-3">
+                    <div id="members-list-container" class="divide-y max-h-64 overflow-y-auto">
+                        <p class="text-gray-400 text-xs text-center py-4">விவரங்கள் ஏற்றப்படுகிறது...</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tab-reports" class="tab-content space-y-4">
+                <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2"><i class="fa-solid fa-chart-line text-purple-600 mr-2"></i>வசூல் அறிக்கைகள்</h3>
+                    
+                    <div class="grid grid-cols-2 gap-2 mb-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-600 mb-1">மாத வடிப்பான்</label>
+                            <input type="month" id="filter-month" class="w-full p-2 text-xs border rounded bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-600 mb-1">ஊர் வடிப்பான்</label>
+                            <input type="text" id="filter-area" placeholder="ஊர் பெயர்" class="w-full p-2 text-xs border rounded bg-white">
+                        </div>
+                        <div class="col-span-2 mt-2">
+                            <button id="btn-apply-filters" class="w-full bg-slate-700 text-white font-bold p-2 text-xs rounded-lg shadow">வடிப்பானைச் செயல்படுத்து</button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 mb-4">
+                        <div class="bg-green-50 p-3 rounded-lg border border-green-200 text-center">
+                            <span class="text-xs text-green-700 block font-semibold">மொத்த வசூல்</span>
+                            <span id="stat-total-amount" class="text-xl font-bold text-green-900">₹0</span>
+                        </div>
+                        <div class="bg-blue-50 p-3 rounded-lg border border-blue-200 text-center">
+                            <span class="text-xs text-blue-700 block font-semibold">ரசீதுகள்</span>
+                            <span id="stat-total-count" class="text-xl font-bold text-blue-900">0</span>
+                        </div>
+                    </div>
+
+                    <button id="btn-export-csv" class="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold p-3 rounded-lg shadow flex justify-center items-center gap-2">
+                        <i class="fa-solid fa-file-excel"></i> மாதாந்திர அறிக்கை பதிவிறக்கு (CSV)
+                    </button>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
+                    <h3 class="text-sm font-bold text-gray-800 mb-2">சமீபத்திய வசூல் ஓட்டம்</h3>
+                    <div id="collections-stream-container" class="divide-y max-h-60 overflow-y-auto text-xs"></div>
+                </div>
+            </section>
+
+            <section id="tab-settings" class="tab-content space-y-4">
+                <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2"><i class="fa-solid fa-user-gear text-red-600 mr-2"></i>நிர்வாக அமைப்புகள்</h3>
+                    <p class="text-xs text-gray-500 mb-4">* புதிய வசூலிப்பாளர்கள் மற்றும் நிர்வாகிகளை இங்கே இணைக்கலாம்.</p>
+                    
+                    <form id="form-add-collector" class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">கையாலர் பெயர் *</label>
+                            <input type="text" id="coll-new-name" required class="w-full p-2.5 text-sm border rounded-lg bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">கைபேசி எண் (With +91) *</label>
+                            <input type="tel" id="coll-new-mobile" value="+91" placeholder="+919876543210" required class="w-full p-2.5 text-sm border rounded-lg bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">அதிகாரப்பூர்வ நிலை (Role) *</label>
+                            <select id="coll-new-role" class="w-full p-2.5 text-sm border rounded-lg bg-white">
+                                <option value="collector">வசூлиப்பவர் (Collector)</option>
+                                <option value="admin">முழு நிர்வாகி (Admin)</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold p-2.5 rounded-lg shadow text-sm">
+                            புதிய கணக்கை உருவாக்கு
+                        </button>
+                    </form>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
+                    <h3 class="text-sm font-bold text-gray-800 mb-2">அங்கீகரிக்கப்பட்ட பொறுப்பாளர்கள் பட்டியல்</h3>
+                    <div id="collectors-list-container" class="divide-y text-xs"></div>
+                </div>
+            </section>
+
+        </main>
+
+        <nav class="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 shadow-lg z-40 flex justify-around">
+            <button data-target="tab-collection" class="nav-btn flex-1 py-3 text-center text-gray-400 font-semibold text-xs flex flex-col items-center gap-1 active">
+                <i class="fa-solid fa-hand-holding-dollar text-lg"></i>வசூல்
+            </button>
+            <button data-target="tab-members" class="nav-btn flex-1 py-3 text-center text-gray-400 font-semibold text-xs flex flex-col items-center gap-1">
+                <i class="fa-solid fa-users text-lg"></i>உறுப்பினர்
+            </button>
+            <button data-target="tab-reports" class="nav-btn flex-1 py-3 text-center text-gray-400 font-semibold text-xs flex flex-col items-center gap-1">
+                <i class="fa-solid fa-chart-pie text-lg"></i>அறிக்கை
+            </button>
+            <button id="nav-link-settings" data-target="tab-settings" class="nav-btn flex-1 py-3 text-center text-gray-400 font-semibold text-xs flex flex-col items-center gap-1 hidden">
+                <i class="fa-solid fa-sliders text-lg"></i>அமைப்புகள்
+            </button>
+        </nav>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+        import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, addDoc, getDoc, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // Verified active project credentials 
+        const firebaseConfig = {
+            apiKey: "AIzaSyDMBvbjbzUgzsRwW8HriMwcqEojj4MNZDs",
+            authDomain: "ntk-santha-app.firebaseapp.com",
+            projectId: "ntk-santha-app",
+            storageBucket: "ntk-santha-app.firebasestorage.app",
+            messagingSenderId: "522106262108",
+            appId: "1:522106262108:web:6275fcb9c99ece7fcd0c99",
+            measurementId: "G-9E9K06RXHY"
+        };
+
+        // Initialize Native Instances
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Core App Runtime Cache Arrays
+        let currentUserProfile = null;
+        let cachedMembers = [];
+        let confirmationResult = null;
+
+        // Initialize Captcha Verification Checkpoint 
+        window.addEventListener('DOMContentLoaded', () => {
+            setupRecaptcha();
+        });
+
+        function setupRecaptcha() {
+            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                'size': 'normal',
+                'callback': (response) => {}
+            });
+        }
+
+        // --- AUTH TRANSACTION HANDLERS ---
+        document.getElementById('btn-send-otp').addEventListener('click', async () => {
+            const phoneNumber = document.getElementById('login-phone').value.trim();
+            const errEl = document.getElementById('auth-error');
+            errEl.classList.add('hidden');
+
+            if (!phoneNumber.startsWith('+91') || phoneNumber.length < 13) {
+                errEl.innerText = "தயவுசெய்து சரியான கைபேசி எண்ணை உள்ளிடவும் (+91 உடன்).";
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                // Confirm number authorization inside 'collectors' directory first
+                const colRef = doc(db, "collectors", phoneNumber);
+                const colSnap = await getDoc(colRef);
+                
+                if (!colSnap.exists()) {
+                    errEl.innerText = "அனுமதி மறுக்கப்பட்டது! இந்த எண் பதிவு செய்யப்படவில்லை.";
+                    errEl.classList.remove('hidden');
+                    return;
+                }
+
+                const appVerifier = window.recaptchaVerifier;
+                confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+                
+                document.getElementById('phone-auth-container').classList.add('hidden');
+                document.getElementById('otp-auth-container').classList.remove('hidden');
+            } catch (error) {
+                errEl.innerText = "பிழை: " + error.message;
+                errEl.classList.remove('hidden');
+                if(window.recaptchaVerifier) setupRecaptcha();
+            }
+        });
+
+        document.getElementById('btn-verify-otp').addEventListener('click', async () => {
+            const otpCode = document.getElementById('login-otp').value.trim();
+            const errEl = document.getElementById('auth-error');
+            
+            try {
+                await confirmationResult.confirm(otpCode);
+            } catch (error) {
+                errEl.innerText = "தவறான OTP எண்! மீண்டும் முயற்சிக்கவும்.";
+                errEl.classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('btn-logout').addEventListener('click', () => {
+            signOut(auth).then(() => { window.location.reload(); });
+        });
+
+        // Global State Authentication Observer
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const phone = user.phoneNumber;
+                const docSnap = await getDoc(doc(db, "collectors", phone));
+                
+                if (docSnap.exists()) {
+                    currentUserProfile = docSnap.data();
+                    currentUserProfile.phone = phone;
+                    
+                    document.getElementById('auth-screen').classList.add('hidden');
+                    document.getElementById('app-screen').classList.remove('hidden');
+                    document.getElementById('user-display-name').innerText = `கையாலர்: ${currentUserProfile.name} (${currentUserProfile.role.toUpperCase()})`;
+                    document.getElementById('coll-by').value = currentUserProfile.name;
+
+                    if (currentUserProfile.role === 'admin') {
+                        document.getElementById('nav-link-settings').classList.remove('hidden');
+                        loadCollectorsList();
+                    }
+
+                    // Pre-fetch downstream datasets
+                    loadMembersData();
+                    loadCollectionsStream();
+                } else {
+                    signOut(auth);
+                    alert("உங்களுக்கு உள்நுழைய அனுமதி இல்லை.");
+                }
+            } else {
+                document.getElementById('auth-screen').classList.remove('hidden');
+                document.getElementById('app-screen').classList.add('hidden');
+            }
+        });
+
+        // --- SPA INTERACTION LOGIC ---
+        const navButtons = document.querySelectorAll('.nav-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        navButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetTab = btn.getAttribute('data-target');
+                navButtons.forEach(b => b.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(targetTab).classList.add('active');
+            });
+        });
+
+        // --- MEMBERS WRITE/READ METHODS ---
+        document.getElementById('form-add-member').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('mem-name').value.trim();
+            let mobile = document.getElementById('mem-mobile').value.trim();
+            const area = document.getElementById('mem-area').value.trim();
+
+            if(!mobile.startsWith('+91')) {
+                mobile = mobile.startsWith('91') ? '+' + mobile : '+91' + mobile;
+            }
+
+            try {
+                await addDoc(collection(db, "members"), {
+                    name, mobile, area, createdAt: new Date().toISOString()
+                });
+                alert("உறுப்பினர் வெற்றிகரமாக சேர்க்கப்பட்டார்!");
+                document.getElementById('form-add-member').reset();
+                loadMembersData();
+            } catch (err) { alert("பிழை: " + err.message); }
+        });
+
+        async function loadMembersData() {
+            try {
+                const snap = await getDocs(collection(db, "members"));
+                cachedMembers = [];
+                snap.forEach(doc => { cachedMembers.push({ id: doc.id, ...doc.data() }); });
+                renderMembersDirectory(cachedMembers);
+            } catch (e) { console.error(e); }
+        }
+
+        function renderMembersDirectory(arr) {
+            const container = document.getElementById('members-list-container');
+            if(arr.length === 0) {
+                container.innerHTML = `<p class="text-gray-400 text-xs text-center py-4">விவரங்கள் எதுவும் இல்லை.</p>`;
+                return;
+            }
+            container.innerHTML = arr.map(m => `
+                <div class="py-2 flex justify-between items-center text-sm">
+                    <div>
+                        <p class="font-bold text-gray-800">${m.name}</p>
+                        <p class="text-xs text-gray-500">${m.area} | ${m.mobile}</p>
+                    </div>
+                    <button type="button" onclick="selectMemberForCollection('${m.id}','${m.name}','${m.mobile}','${m.area}')" class="bg-yellow-500 text-xs px-2.5 py-1.5 rounded font-bold text-slate-900">தேர்வு</button>
+                </div>
+            `).join('');
+        }
+
+        // UI Auto-Matching Search Event Listeners
+        document.getElementById('search-member-input').addEventListener('input', (e) => {
+            const txt = e.target.value.toLowerCase().trim();
+            const dd = document.getElementById('search-results-dropdown');
+            if(!txt) { dd.classList.add('hidden'); return; }
+
+            const filtered = cachedMembers.filter(m => 
+                m.name.toLowerCase().includes(txt) || m.mobile.includes(txt) || m.area.toLowerCase().includes(txt)
+            );
+
+            if(filtered.length === 0) {
+                dd.innerHTML = `<p class="p-2 text-xs text-gray-400">யாரும் இல்லை</p>`;
+            } else {
+                dd.innerHTML = filtered.map(m => `
+                    <div class="p-2 text-xs hover:bg-gray-100 cursor-pointer flex justify-between font-medium" 
+                         onclick="selectMemberFromDropdown('${m.id}','${m.name}','${m.mobile}','${m.area}')">
+                        <span>${m.name} (${m.area})</span> <span class="text-gray-400">${m.mobile}</span>
+                    </div>
+                `).join('');
+            }
+            dd.classList.remove('hidden');
+        });
+
+        document.getElementById('directory-search').addEventListener('input', (e) => {
+            const txt = e.target.value.toLowerCase().trim();
+            const filtered = cachedMembers.filter(m => 
+                m.name.toLowerCase().includes(txt) || m.area.toLowerCase().includes(txt) || m.mobile.includes(txt)
+            );
+            renderMembersDirectory(filtered);
+        });
+
+        window.selectMemberFromDropdown = (id, name, mobile, area) => {
+            document.getElementById('search-results-dropdown').classList.add('hidden');
+            document.getElementById('search-member-input').value = name;
+            selectMemberForCollection(id, name, mobile, area);
+        };
+
+        window.selectMemberForCollection = (id, name, mobile, area) => {
+            document.getElementById('coll-member-id').value = id;
+            document.getElementById('coll-name').value = name;
+            document.getElementById('coll-mobile').value = mobile;
+            document.getElementById('coll-area').value = area;
+            document.querySelector('[data-target="tab-collection"]').click();
+        };
+
+        // --- COMMIT SANTHA TRANSACTIONS ---
+        document.getElementById('form-collection').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const memberId = document.getElementById('coll-member-id').value;
+            const name = document.getElementById('coll-name').value;
+            const mobile = document.getElementById('coll-mobile').value;
+            const area = document.getElementById('coll-area').value;
+            const month = document.getElementById('coll-month').value;
+            const amount = document.getElementById('coll-amount').value;
+            const collectorName = currentUserProfile.name;
+
+            if(!memberId) {
+                alert("தயவுசெய்து உறுப்பினரை தேடி தேர்ந்தெடுக்கவும்!");
+                return;
+            }
+
+            try {
+                await addDoc(collection(db, "collections"), {
+                    memberId, name, mobile, area, month, 
+                    amount: Number(amount), collectedBy: collectorName,
+                    collectedByPhone: currentUserProfile.phone, date: new Date().toISOString()
+                });
+
+                alert("சந்தா வெற்றிகரமாக சேமிக்கப்பட்டது!");
+                
+                // Construct WhatsApp Intent Payload String
+                const msg = `*நாம் தமிழர் கட்சி - சந்தா ரசீது*\n---------------------------\n*மண்டலம்:* காட்டுமன்னார்கோவில்\n*பெயர்:* ${name}\n*ஊர்:* ${area}\n*சந்தா மாதம்:* ${month}\n*செலுத்திய தொகை:* ₹${amount}/-\n\n*வசூலிப்பவர்:* ${collectorName}\n_நன்றி! புரட்சி வாழ்க!_`;
+                
+                let cleanPhone = mobile.replace(/[^0-9]/g, "");
+                if(!cleanPhone.startsWith('91') && cleanPhone.length === 10) {
+                    cleanPhone = '91' + cleanPhone;
+                }
+
+                window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+
+                document.getElementById('form-collection').reset();
+                document.getElementById('coll-member-id').value = "";
+                document.getElementById('coll-by').value = currentUserProfile.name;
+                loadCollectionsStream();
+            } catch(err) { alert("பிழை: " + err.message); }
+        });
+
+        // --- LEDGER REPORTING ENGINE ---
+        async function loadCollectionsStream(filterMonth = '', filterArea = '') {
+            try {
+                let q = query(collection(db, "collections"), orderBy("date", "desc"));
+                const snap = await getDocs(q);
+                
+                let totalAmt = 0, count = 0, streamHtml = '';
+                let csvRows = [['பெயர்', 'கைபேசி', 'ஊர்', 'மாதம்', 'தொகை (₹)', 'வசூலித்தவர்', 'தேதி']];
+
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    if(filterMonth && data.month !== filterMonth) return;
+                    if(filterArea && !data.area.toLowerCase().includes(filterArea.toLowerCase())) return;
+
+                    totalAmt += data.amount;
+                    count++;
+                    csvRows.push([data.name, data.mobile, data.area, data.month, data.amount, data.collectedBy, data.date.split('T')[0]]);
+
+                    streamHtml += `
+                        <div class="py-2 border-b">
+                            <div class="flex justify-between font-semibold text-gray-800">
+                                <span>${data.name} (${data.month})</span>
+                                <span class="text-green-700">₹${data.amount}</span>
+                            </div>
+                            <div class="flex justify-between text-gray-500 text-[10px]">
+                                <span>${data.area} | வசூல்: ${data.collectedBy}</span>
+                                <span>${data.date.split('T')[0]}</span>
+                            </div>
+                        </div>`;
+                });
+
+                document.getElementById('stat-total-amount').innerText = `₹${totalAmt}`;
+                document.getElementById('stat-total-count').innerText = count;
+                document.getElementById('collections-stream-container').innerHTML = count === 0 ? `<p class="text-gray-400 text-center py-4">தரவுகள் எதுவும் இல்லை.</p>` : streamHtml;
+                window.currentCsvData = csvRows;
+            } catch (e) { console.error(e); }
+        }
+
+        document.getElementById('btn-apply-filters').addEventListener('click', () => {
+            loadCollectionsStream(document.getElementById('filter-month').value, document.getElementById('filter-area').value.trim());
+        });
+
+        document.getElementById('btn-export-csv').addEventListener('click', () => {
+            if(!window.currentCsvData || window.currentCsvData.length <= 1) {
+                alert("பதிவிறக்க தரவுகள் இல்லை!");
+                return;
+            }
+            let csvContent = "\uFEFF" + window.currentCsvData.map(e => e.map(val => `"${val}"`).join(",")).join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.setAttribute("href", URL.createObjectURL(blob));
+            link.setAttribute("download", `NTK_Santha_Report_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        // --- ADMINISTRATIVE ACCOUNTS MANIPULATION ---
+        document.getElementById('form-add-collector').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('coll-new-name').value.trim();
+            const phone = document.getElementById('coll-new-mobile').value.trim();
+            const role = document.getElementById('coll-new-role').value;
+
+            if(!phone.startsWith('+91') || phone.length < 13) {
+                alert("கைபேசி வடிவம் தேவை! எ.கா: +919876543210");
+                return;
+            }
+
+            try {
+                await setDoc(doc(db, "collectors", phone), { name, role });
+                alert("புதிய கையாலர் வெற்றிகரமாக இணைக்கப்பட்டார்!");
+                document.getElementById('form-add-collector').reset();
+                document.getElementById('coll-new-mobile').value = "+91";
+                loadCollectorsList();
+            } catch (err) { alert("பிழை: " + err.message); }
+        });
+
+        async function loadCollectorsList() {
+            try {
+                const snap = await getDocs(collection(db, "collectors"));
+                let html = '';
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    html += `
+                        <div class="py-2 flex justify-between items-center">
+                            <div>
+                                <p class="font-bold text-gray-700">${d.name} (${doc.id})</p>
+                                <p class="text-[10px] text-gray-400">நிலை: ${d.role.toUpperCase()}</p>
+                            </div>
+                            <span class="px-2 py-0.5 rounded text-[10px] ${d.role === 'admin' ? 'bg-red-100 text-red-700':'bg-slate-100 text-slate-700'} font-bold">${d.role}</span>
+                        </div>`;
+                });
+                document.getElementById('collectors-list-container').innerHTML = html;
+            } catch (e) { console.error(e); }
+        }
+    </script>
+    <script>
+        // PWA Service Worker Registration Bootstrap 
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
+</body>
+</html>
