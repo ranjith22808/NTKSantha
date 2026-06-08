@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>NTK Santha Collection - Manual Member ID Fixed</title>
+    <title>NTK Santha Collection - Manual ID Fixed</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="manifest" href="manifest.json">
@@ -44,7 +44,7 @@
     <!-- MAIN APP -->
     <div id="app-screen" class="hidden">
         <header class="bg-red-700 text-white shadow-md sticky top-0 z-40 px-4 py-3 text-center">
-            <h1 class="text-xl font-bold tracking-wide">நாம் தமிழர் கட்சி <span class="version-badge">v2.5.0 (Manual ID Fixed)</span></h1>
+            <h1 class="text-xl font-bold tracking-wide">நாம் தமிழர் கட்சி <span class="version-badge">v2.6.0 (Manual ID - Fixed)</span></h1>
             <p class="text-xs text-yellow-300 font-semibold">காட்டுமன்னார்கோவில் மண்டலம் (சந்தா வசூல்)</p>
             <div class="text-[10px] text-gray-200 mt-1 flex justify-between px-2">
                 <span id="user-display-name">கையாலர்: Loading...</span>
@@ -82,7 +82,7 @@
                 </div>
             </section>
 
-            <!-- MEMBERS TAB with Manual ID -->
+            <!-- MEMBERS TAB -->
             <section id="tab-members" class="tab-content space-y-4">
                 <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
                     <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2"><i class="fa-solid fa-user-plus text-blue-600 mr-2"></i>புதிய உறுப்பினர் சேர்க்கை</h3>
@@ -180,9 +180,9 @@
         const db = getFirestore(app);
 
         let currentUserProfile = null;
-        let cachedMembers = []; // each object: { id: firebaseDocId, memberId: manualId, name, mobile, area }
+        let cachedMembers = [];
         let cachedCollections = [];
-        let collectionsByMember = new Map(); // manual memberId -> Set of months paid
+        let collectionsByMember = new Map();
         let confirmationResult = null;
 
         window.setupRecaptcha = () => { window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'normal' }); };
@@ -202,37 +202,53 @@
         document.getElementById('btn-verify-otp').addEventListener('click', async () => { try { await confirmationResult.confirm(document.getElementById('login-otp').value.trim()); } catch(e){ document.getElementById('auth-error').innerText="தவறான OTP"; document.getElementById('auth-error').classList.remove('hidden'); } });
         document.getElementById('btn-logout').addEventListener('click', () => signOut(auth).then(() => location.reload()));
 
-        // Migration: Ensure all members have a manual memberId
-        async function migrateMissingMemberIds() {
+        // ========== MIGRATION: Fix existing collections to use manual member IDs ==========
+        async function migrateCollectionIds() {
+            console.log("Running migration to fix member IDs in collections...");
+            // First, ensure every member has a manual memberId
             const membersSnap = await getDocs(collection(db, "members"));
             let counter = 1;
-            for (const docSnap of membersSnap.docs) {
-                const data = docSnap.data();
-                if (!data.memberId || data.memberId.trim() === "") {
-                    // Generate a sequential manual ID
+            for (const memDoc of membersSnap.docs) {
+                const memData = memDoc.data();
+                if (!memData.memberId || memData.memberId.trim() === "") {
                     let newId = `NTK${String(counter).padStart(4, '0')}`;
-                    // Avoid collision (though unlikely)
                     while (membersSnap.docs.some(d => d.data().memberId === newId)) {
                         counter++;
                         newId = `NTK${String(counter).padStart(4, '0')}`;
                     }
-                    await updateDoc(doc(db, "members", docSnap.id), { memberId: newId });
-                    console.log(`Migrated member ${docSnap.id} with manual ID: ${newId}`);
+                    await updateDoc(doc(db, "members", memDoc.id), { memberId: newId });
+                    console.log(`Migrated member ${memDoc.id} to manual ID ${newId}`);
                     counter++;
                 }
             }
-            // Also check if any collection documents are missing memberId field (optional but good)
+            // Now refresh members list to get updated manual IDs
+            const freshMembersSnap = await getDocs(collection(db, "members"));
+            const memberMap = new Map(); // firebase doc id -> manual memberId
+            freshMembersSnap.forEach(docSnap => {
+                memberMap.set(docSnap.id, docSnap.data().memberId);
+            });
+            
+            // Fix all collection documents
             const collSnap = await getDocs(collection(db, "collections"));
-            for (const docSnap of collSnap.docs) {
-                const data = docSnap.data();
-                if (!data.memberId && data.memberIdRef) {
-                    // try to fetch member by firebaseId
-                    const memberDoc = await getDoc(doc(db, "members", data.memberIdRef));
-                    if (memberDoc.exists() && memberDoc.data().memberId) {
-                        await updateDoc(doc(db, "collections", docSnap.id), { memberId: memberDoc.data().memberId });
-                    }
+            for (const collDoc of collSnap.docs) {
+                const collData = collDoc.data();
+                let correctManualId = null;
+                // If there is a memberIdRef (firebase doc id) field, use it
+                if (collData.memberIdRef && memberMap.has(collData.memberIdRef)) {
+                    correctManualId = memberMap.get(collData.memberIdRef);
+                } 
+                // Otherwise if memberId exists but looks like firebase ID (starts with alphanumeric length 20), try to find by matching name/area? safer: do nothing
+                else if (collData.memberId && collData.memberId.length > 15 && !collData.memberId.startsWith('NTK')) {
+                    // Try to find member by name+area+mobile
+                    const match = freshMembersSnap.docs.find(d => d.data().name === collData.name && d.data().area === collData.area);
+                    if (match) correctManualId = match.data().memberId;
+                }
+                if (correctManualId && correctManualId !== collData.memberId) {
+                    await updateDoc(doc(db, "collections", collDoc.id), { memberId: correctManualId });
+                    console.log(`Fixed collection ${collDoc.id} to manual ID ${correctManualId}`);
                 }
             }
+            console.log("Migration completed.");
         }
 
         onAuthStateChanged(auth, async (user) => {
@@ -247,7 +263,7 @@
                     if (currentUserProfile.role === 'admin') document.getElementById('nav-link-settings').classList.remove('hidden');
                     
                     // Run migration once to fix old records
-                    await migrateMissingMemberIds();
+                    await migrateCollectionIds();
                     
                     await loadMembersData();
                     await loadAllCollectionsForStatus();
@@ -266,7 +282,7 @@
             collectionsByMember.clear();
             for (const coll of cachedCollections) {
                 const mid = coll.memberId;
-                if (mid) {
+                if (mid && mid !== "undefined") {
                     if (!collectionsByMember.has(mid)) collectionsByMember.set(mid, new Set());
                     collectionsByMember.get(mid).add(coll.month);
                 }
@@ -284,7 +300,6 @@
             return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
         }
 
-        // Tab switching
         document.querySelectorAll('.nav-btn').forEach(btn => btn.addEventListener('click', () => {
             document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
@@ -417,7 +432,7 @@
                 m.mobile.includes(txt))); 
         });
         
-        // COLLECTION
+        // COLLECTION STREAM
         async function loadCollectionsStream(filterMonth = '', filterArea = '') {
             const q = query(collection(db, "collections"), orderBy("date", "desc"));
             const snap = await getDocs(q);
@@ -428,23 +443,27 @@
                 if(filterMonth && data.month !== filterMonth) return;
                 if(filterArea && !data.area.toLowerCase().includes(filterArea.toLowerCase())) return;
                 totalAmt += data.amount; count++;
-                csvRows.push([data.memberId || '', data.name, data.mobile, data.area, data.month, data.amount, data.collectedBy, data.date.split('T')[0]]);
-                streamHtml += `<div class="py-2 border-b flex justify-between items-center"><div><div class="font-semibold text-gray-800"><span class="text-blue-600 font-mono text-[10px]">${data.memberId || '---'}</span> ${data.name} (${data.month}) - ₹${data.amount}</div><div class="text-[10px] text-gray-500">${data.area} | வசூல்: ${data.collectedBy}</div></div><button onclick="window.resendWhatsappReceipt('${docSnap.id}')" class="text-green-600 text-lg px-2" title="Resend WhatsApp"><i class="fa-brands fa-whatsapp"></i></button></div>`;
+                const manualIdDisplay = (data.memberId && data.memberId !== "undefined") ? data.memberId : "----";
+                csvRows.push([manualIdDisplay, data.name, data.mobile, data.area, data.month, data.amount, data.collectedBy, data.date.split('T')[0]]);
+                streamHtml += `<div class="py-2 border-b flex justify-between items-center"><div><div class="font-semibold text-gray-800"><span class="text-blue-600 font-mono text-[10px]">${escapeHtml(manualIdDisplay)}</span> ${data.name} (${data.month}) - ₹${data.amount}</div><div class="text-[10px] text-gray-500">${data.area} | வசூல்: ${data.collectedBy}</div></div><button onclick="window.resendWhatsappReceipt('${docSnap.id}')" class="text-green-600 text-lg px-2" title="Resend WhatsApp"><i class="fa-brands fa-whatsapp"></i></button></div>`;
             });
             document.getElementById('stat-total-amount').innerHTML = `₹${totalAmt}`;
             document.getElementById('stat-total-count').innerText = count;
             document.getElementById('collections-stream-container').innerHTML = count === 0 ? `<p class="text-gray-400 text-center py-4">தரவுகள் இல்லை</p>` : streamHtml;
             window.currentCsvData = csvRows;
         }
+        
         window.resendWhatsappReceipt = async (collectionId) => {
             const docSnap = await getDoc(doc(db, "collections", collectionId));
             if(!docSnap.exists()) return alert("ரசீது கிடைக்கவில்லை");
             const d = docSnap.data();
-            const msg = `*நாம் தமிழர் கட்சி - சந்தா ரசீது*\n---------------------------\n*மண்டலம்:* காட்டுமன்னார்கோவில்\n*உறுப்பினர் ID:* ${d.memberId || '-'}\n*பெயர்:* ${d.name}\n*ஊர்:* ${d.area}\n*சந்தா மாதம்:* ${d.month}\n*செலுத்திய தொகை:* ₹${d.amount}/-\n\n*வசூலிப்பவர்:* ${d.collectedBy}\n_நன்றி! புரட்சி வாழ்க!_`;
+            const manualId = (d.memberId && d.memberId !== "undefined") ? d.memberId : "----";
+            const msg = `*நாம் தமிழர் கட்சி - சந்தா ரசீது*\n---------------------------\n*மண்டலம்:* காட்டுமன்னார்கோவில்\n*உறுப்பினர் ID:* ${manualId}\n*பெயர்:* ${d.name}\n*ஊர்:* ${d.area}\n*சந்தா மாதம்:* ${d.month}\n*செலுத்திய தொகை:* ₹${d.amount}/-\n\n*வசூலிப்பவர்:* ${d.collectedBy}\n_நன்றி! புரட்சி வாழ்க!_`;
             let cleanPhone = d.mobile.replace(/[^0-9]/g, "");
             if(!cleanPhone.startsWith('91') && cleanPhone.length === 10) cleanPhone = '91' + cleanPhone;
             window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
         };
+        
         document.getElementById('form-collection').addEventListener('submit', async (e) => {
             e.preventDefault();
             const firebaseId = document.getElementById('coll-member-firebase-id').value;
@@ -453,8 +472,10 @@
             if(!selectedMember) return alert("Member data missing");
             const month = document.getElementById('coll-month').value;
             const amount = Number(document.getElementById('coll-amount').value);
+            // Store both memberId (manual) and memberIdRef (firebase doc id) for reference
             await addDoc(collection(db, "collections"), { 
-                memberId: selectedMember.memberId,
+                memberId: selectedMember.memberId,   // MANUAL ID
+                memberIdRef: firebaseId,             // firebase doc id for lookup
                 name: selectedMember.name, 
                 mobile: selectedMember.mobile, 
                 area: selectedMember.area, 
