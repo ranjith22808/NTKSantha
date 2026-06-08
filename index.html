@@ -6,7 +6,6 @@
     <title>NTK Santha - காட்டுமன்னார்கோயில் சட்டமண்டரத்தொகுதி (தனி)</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom icon from root directory -->
     <link rel="icon" href="icon.png" type="image/png">
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="manifest" href="manifest.json">
@@ -25,6 +24,8 @@
         .stats-card:hover { transform: translateY(-2px); }
         .nav-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; background: #0f172a; }
         .nav-btn { border-radius: 0; padding: 10px 2px; }
+        .search-dropdown-item { cursor: pointer; padding: 8px; border-bottom: 1px solid #e5e7eb; }
+        .search-dropdown-item:hover { background-color: #f3f4f6; }
     </style>
 </head>
 <body class="bg-gray-100 font-sans pb-20">
@@ -51,7 +52,7 @@
     <!-- MAIN APP -->
     <div id="app-screen" class="hidden">
         <header class="bg-red-700 text-white shadow-md sticky top-0 z-40 px-4 py-2 text-center">
-            <h1 class="text-lg font-bold tracking-wide">நாம் தமிழர் கட்சி <span class="version-badge">v3.2 (Expense Report + WhatsApp Format)</span></h1>
+            <h1 class="text-lg font-bold tracking-wide">நாம் தமிழர் கட்சி <span class="version-badge">v3.3</span></h1>
             <p class="text-[11px] text-yellow-300 font-semibold">காட்டுமன்னார்கோயில் சட்டமண்டரத்தொகுதி (தனி)</p>
             <div class="text-[10px] text-gray-200 mt-1 flex justify-between px-2">
                 <span id="user-display-name">கையாலர்: Loading...</span>
@@ -84,13 +85,13 @@
                     <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2"><i class="fa-solid fa-money-bill-wave text-green-600 mr-2"></i>சந்தா வசூல் படிவம்</h3>
                     <div class="mb-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
                         <label class="block text-xs font-bold text-gray-600 mb-1">உறுப்பினர் தேடல் (Manual ID / பெயர் / எண் / ஊர்)</label>
-                        <input type="text" id="search-member-input" placeholder="Manual ID, பெயர், எண், ஊர்..." class="w-full p-2 text-sm border rounded-lg bg-white">
+                        <input type="text" id="search-member-input" placeholder="Manual ID, பெயர், எண், ஊர்..." class="w-full p-2 text-sm border rounded-lg bg-white" autocomplete="off">
                         <div id="search-results-dropdown" class="mt-2 max-h-40 overflow-y-auto divide-y bg-white border rounded shadow-inner hidden"></div>
                     </div>
                     <form id="form-collection" class="space-y-3">
                         <input type="hidden" id="coll-member-firebase-id">
                         <div class="grid grid-cols-2 gap-2">
-                            <div><label class="block text-xs font-bold text-gray-700 mb-1">உறுப்பினர் ID (Manual)</label><input type="text" id="coll-member-code" readonly class="w-full p-2.5 text-sm bg-gray-100 border rounded-lg font-mono"></div>
+                            <div><label class="block text-xs font-bold text-gray-700 mb-1">உறுப்பினர் ID</label><input type="text" id="coll-member-code" readonly class="w-full p-2.5 text-sm bg-gray-100 border rounded-lg font-mono"></div>
                             <div><label class="block text-xs font-bold text-gray-700 mb-1">பெயர்</label><input type="text" id="coll-name" readonly class="w-full p-2.5 text-sm bg-gray-100 border rounded-lg font-semibold"></div>
                         </div>
                         <div><label class="block text-xs font-bold text-gray-700 mb-1">கைபேசி எண்</label><input type="tel" id="coll-mobile" readonly class="w-full p-2.5 text-sm bg-gray-100 border rounded-lg"></div>
@@ -118,8 +119,8 @@
                     </form>
                 </div>
                 <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
-                    <h3 class="text-md font-bold text-gray-800 mb-2">உறுப்பினர்கள் பட்டியல் (Manual ID, பெயர், நிலை)</h3>
-                    <input type="text" id="directory-search" placeholder="Manual ID / பெயர் / ஊர் மூலம் தேடு..." class="w-full p-2 text-sm border rounded-lg mb-3">
+                    <h3 class="text-md font-bold text-gray-800 mb-2">உறுப்பினர்கள் பட்டியல்</h3>
+                    <input type="text" id="directory-search" placeholder="ID / பெயர் / ஊர் மூலம் தேடு..." class="w-full p-2 text-sm border rounded-lg mb-3">
                     <div id="members-list-container" class="divide-y max-h-80 overflow-y-auto"></div>
                 </div>
             </section>
@@ -129,20 +130,20 @@
                 <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
                     <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2"><i class="fa-solid fa-file-invoice-dollar text-orange-600 mr-2"></i>புதிய செலவு பதிவு</h3>
                     <form id="form-expense" class="space-y-3">
-                        <div><label class="block text-xs font-bold text-gray-700 mb-1">செலவுக்கான காரணம் *</label><input type="text" id="expense-purpose" required placeholder="எ.கா: அலுவலக செலவு, விளம்பரம்" class="w-full p-2.5 text-sm border rounded-lg bg-white"></div>
-                        <div><label class="block text-xs font-bold text-gray-700 mb-1">குறிப்பு (விரிவாக)</label><textarea id="expense-note" rows="2" placeholder="விரிவான குறிப்பு..." class="w-full p-2.5 text-sm border rounded-lg bg-white"></textarea></div>
+                        <div><label class="block text-xs font-bold text-gray-700 mb-1">செலவுக்கான காரணம் *</label><input type="text" id="expense-purpose" required placeholder="எ.கா: அலுவலக செலவு" class="w-full p-2.5 text-sm border rounded-lg bg-white"></div>
+                        <div><label class="block text-xs font-bold text-gray-700 mb-1">குறிப்பு</label><textarea id="expense-note" rows="2" placeholder="விரிவான குறிப்பு..." class="w-full p-2.5 text-sm border rounded-lg bg-white"></textarea></div>
                         <div class="grid grid-cols-2 gap-2">
-                            <div><label class="block text-xs font-bold text-gray-700 mb-1">தொகை (₹) *</label><input type="number" id="expense-amount" min="1" required placeholder="தொகை" class="w-full p-2.5 text-sm border rounded-lg bg-white"></div>
+                            <div><label class="block text-xs font-bold text-gray-700 mb-1">தொகை (₹) *</label><input type="number" id="expense-amount" min="1" required class="w-full p-2.5 text-sm border rounded-lg bg-white"></div>
                             <div><label class="block text-xs font-bold text-gray-700 mb-1">செலவு தேதி *</label><input type="date" id="expense-date" required class="w-full p-2.5 text-sm border rounded-lg bg-white"></div>
                         </div>
                         <button type="submit" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold p-2.5 rounded-lg shadow text-sm"><i class="fa-solid fa-wallet"></i> செலவு பதிவு செய்</button>
                     </form>
                 </div>
                 <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
-                    <div class="flex justify-between items-center mb-2">
+                    <div class="flex justify-between items-center mb-2 flex-wrap gap-2">
                         <h3 class="text-md font-bold text-gray-800">செலவுகள் பட்டியல்</h3>
                         <div class="flex gap-1">
-                            <input type="text" id="filter-expense-purpose" placeholder="காரணம்/குறிப்பு" class="text-xs p-1 border rounded w-28">
+                            <input type="text" id="filter-expense-purpose" placeholder="காரணம்" class="text-xs p-1 border rounded w-28">
                             <input type="date" id="filter-expense-date" class="text-xs p-1 border rounded w-28">
                             <button id="btn-filter-expense" class="bg-gray-600 text-white text-xs px-2 py-1 rounded">வடி</button>
                             <button id="btn-reset-expense" class="bg-gray-400 text-white text-xs px-2 py-1 rounded">அழி</button>
@@ -152,7 +153,7 @@
                 </div>
             </section>
 
-            <!-- REPORTS TAB (Collection + Expense Reports) -->
+            <!-- REPORTS TAB -->
             <section id="tab-reports" class="tab-content space-y-4">
                 <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
                     <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2"><i class="fa-solid fa-chart-line text-purple-600 mr-2"></i>வசூல் அறிக்கைகள்</h3>
@@ -162,7 +163,6 @@
                         <div class="col-span-2 mt-2"><button id="btn-apply-filters" class="w-full bg-slate-700 text-white font-bold p-2 text-xs rounded-lg">வடிப்பானைச் செயல்படுத்து</button></div>
                     </div>
                     <button id="btn-export-csv" class="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold p-3 rounded-lg shadow flex justify-center items-center gap-2 mb-3"><i class="fa-solid fa-file-excel"></i> வசூல் அறிக்கை பதிவிறக்கு (CSV)</button>
-                    
                     <div class="border-t pt-3 mt-2">
                         <h3 class="text-md font-bold text-gray-800 mb-2"><i class="fa-solid fa-coins text-orange-600 mr-2"></i>செலவு அறிக்கை</h3>
                         <div class="grid grid-cols-2 gap-2 mb-3">
@@ -196,24 +196,23 @@
             </section>
         </main>
 
-        <!-- Bottom Navigation -->
         <nav class="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 shadow-lg z-40">
             <div class="nav-grid">
-                <button data-target="tab-collection" class="nav-btn flex-1 py-2 text-center text-gray-400 font-semibold text-[11px] flex flex-col items-center gap-0 active"><i class="fa-solid fa-hand-holding-dollar text-base"></i><span>வசூல்</span></button>
-                <button data-target="tab-members" class="nav-btn flex-1 py-2 text-center text-gray-400 font-semibold text-[11px] flex flex-col items-center gap-0"><i class="fa-solid fa-users text-base"></i><span>உறுப்பினர்</span></button>
-                <button data-target="tab-expense" class="nav-btn flex-1 py-2 text-center text-gray-400 font-semibold text-[11px] flex flex-col items-center gap-0"><i class="fa-solid fa-coins text-base"></i><span>செலவு</span></button>
-                <button data-target="tab-reports" class="nav-btn flex-1 py-2 text-center text-gray-400 font-semibold text-[11px] flex flex-col items-center gap-0"><i class="fa-solid fa-chart-pie text-base"></i><span>அறிக்கை</span></button>
-                <button id="nav-link-settings" data-target="tab-settings" class="nav-btn flex-1 py-2 text-center text-gray-400 font-semibold text-[11px] flex flex-col items-center gap-0 hidden"><i class="fa-solid fa-sliders text-base"></i><span>அமைப்புகள்</span></button>
+                <button data-target="tab-collection" class="nav-btn py-2 text-center text-gray-400 font-semibold text-[11px] flex flex-col items-center gap-0 active"><i class="fa-solid fa-hand-holding-dollar text-base"></i><span>வசூல்</span></button>
+                <button data-target="tab-members" class="nav-btn py-2 text-center text-gray-400 font-semibold text-[11px] flex flex-col items-center gap-0"><i class="fa-solid fa-users text-base"></i><span>உறுப்பினர்</span></button>
+                <button data-target="tab-expense" class="nav-btn py-2 text-center text-gray-400 font-semibold text-[11px] flex flex-col items-center gap-0"><i class="fa-solid fa-coins text-base"></i><span>செலவு</span></button>
+                <button data-target="tab-reports" class="nav-btn py-2 text-center text-gray-400 font-semibold text-[11px] flex flex-col items-center gap-0"><i class="fa-solid fa-chart-pie text-base"></i><span>அறிக்கை</span></button>
+                <button id="nav-link-settings" data-target="tab-settings" class="nav-btn py-2 text-center text-gray-400 font-semibold text-[11px] flex flex-col items-center gap-0 hidden"><i class="fa-solid fa-sliders text-base"></i><span>அமைப்புகள்</span></button>
             </div>
         </nav>
     </div>
 
-    <!-- MODALS -->
+    <!-- MODALS (unchanged) -->
     <div id="edit-member-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay" onclick="if(event.target===this) closeModals()">
         <div class="bg-white rounded-2xl w-full max-w-md mx-4 p-5 shadow-2xl animate-fade-in">
             <h3 class="text-lg font-bold border-b pb-2 mb-3"><i class="fa-solid fa-pen text-blue-600 mr-2"></i>உறுப்பினர் திருத்து</h3>
             <input type="hidden" id="edit-member-firebase-id">
-            <div class="mb-3"><label class="block text-xs font-bold">உறுப்பினர் ID (Manual) *</label><input id="edit-member-code" class="w-full p-2 border rounded font-mono text-sm"></div>
+            <div class="mb-3"><label class="block text-xs font-bold">உறுப்பினர் ID</label><input id="edit-member-code" class="w-full p-2 border rounded font-mono text-sm"></div>
             <div class="mb-3"><label class="block text-xs font-bold">பெயர்</label><input id="edit-member-name" class="w-full p-2 border rounded"></div>
             <div class="mb-3"><label class="block text-xs font-bold">கைபேசி</label><input id="edit-member-mobile" class="w-full p-2 border rounded"></div>
             <div class="mb-4"><label class="block text-xs font-bold">ஊர்</label><input id="edit-member-area" class="w-full p-2 border rounded"></div>
@@ -276,7 +275,6 @@
         document.getElementById('btn-verify-otp').addEventListener('click', async () => { try { await window.confirmationResult.confirm(document.getElementById('login-otp').value.trim()); } catch(e){ document.getElementById('auth-error').innerText="தவறான OTP"; document.getElementById('auth-error').classList.remove('hidden'); } });
         document.getElementById('btn-logout').addEventListener('click', () => signOut(auth).then(() => location.reload()));
 
-        // Migration: ensure every member has a manual memberId
         async function migrateMemberIds() {
             const membersSnap = await getDocs(collection(db, "members"));
             let counter = 1;
@@ -374,6 +372,69 @@
                 return `<div class="py-3 flex justify-between items-start text-sm border-b"><div class="flex-1"><div class="flex items-center gap-2 flex-wrap"><span class="font-bold text-gray-800"><span class="text-blue-600 font-mono text-xs">${escapeHtml(manualId)}</span> - ${escapeHtml(m.name)}</span>${statusBadge}</div><p class="text-xs text-gray-500 mt-1">${escapeHtml(m.area)} | ${m.mobile}</p></div><div class="flex gap-2 items-center"><button onclick="window.callMember('${m.mobile}')" class="text-green-600 hover:text-green-800 text-lg"><i class="fa-solid fa-phone"></i></button><button onclick="window.sendWhatsappReminder('${m.mobile}', '${escapeHtml(m.name)}', '${currentMonth}')" class="text-green-700 text-lg"><i class="fa-brands fa-whatsapp"></i></button><button onclick="window.selectMemberForCollection('${m.id}','${escapeHtml(manualId)}','${escapeHtml(m.name)}','${m.mobile}','${escapeHtml(m.area)}')" class="bg-yellow-500 text-xs px-2 py-1 rounded font-bold">தேர்வு</button>${isAdmin ? `<button onclick="window.openEditMemberModal('${m.id}','${escapeHtml(manualId)}','${escapeHtml(m.name)}','${m.mobile}','${escapeHtml(m.area)}')" class="text-blue-600 px-1"><i class="fa-solid fa-pen"></i></button><button onclick="window.deleteMember('${m.id}')" class="text-red-600 px-1"><i class="fa-solid fa-trash"></i></button>` : ''}</div></div>`;
             }).join('');
         }
+
+        // SEARCH FUNCTIONALITY - FIXED
+        const searchInput = document.getElementById('search-member-input');
+        const dropdown = document.getElementById('search-results-dropdown');
+        
+        function updateSearchDropdown() {
+            const txt = searchInput.value.toLowerCase().trim();
+            if (!txt) {
+                dropdown.classList.add('hidden');
+                return;
+            }
+            const filtered = cachedMembers.filter(m => 
+                (m.memberId && m.memberId.toLowerCase().includes(txt)) || 
+                (m.name && m.name.toLowerCase().includes(txt)) || 
+                (m.mobile && m.mobile.includes(txt)) || 
+                (m.area && m.area.toLowerCase().includes(txt))
+            );
+            if (filtered.length === 0) {
+                dropdown.innerHTML = `<div class="p-2 text-xs text-gray-400 text-center">யாரும் இல்லை</div>`;
+            } else {
+                dropdown.innerHTML = filtered.map(m => `
+                    <div class="p-2 text-xs hover:bg-gray-100 cursor-pointer search-dropdown-item" data-member-id="${m.id}" data-member-code="${escapeHtml(m.memberId)}" data-member-name="${escapeHtml(m.name)}" data-member-mobile="${m.mobile}" data-member-area="${escapeHtml(m.area)}">
+                        [${escapeHtml(m.memberId)}] ${escapeHtml(m.name)} (${escapeHtml(m.area)}) - ${m.mobile}
+                    </div>
+                `).join('');
+                // Add click event listeners to each item
+                document.querySelectorAll('.search-dropdown-item').forEach(el => {
+                    el.addEventListener('click', () => {
+                        const firebaseId = el.getAttribute('data-member-id');
+                        const manualId = el.getAttribute('data-member-code');
+                        const name = el.getAttribute('data-member-name');
+                        const mobile = el.getAttribute('data-member-mobile');
+                        const area = el.getAttribute('data-member-area');
+                        selectMemberForCollection(firebaseId, manualId, name, mobile, area);
+                        dropdown.classList.add('hidden');
+                        searchInput.value = name;
+                    });
+                });
+            }
+            dropdown.classList.remove('hidden');
+        }
+        
+        searchInput.addEventListener('input', updateSearchDropdown);
+        // Hide dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        // Directory search
+        const directorySearch = document.getElementById('directory-search');
+        directorySearch.addEventListener('input', (e) => {
+            const txt = e.target.value.toLowerCase().trim();
+            const filtered = cachedMembers.filter(m => 
+                (m.memberId && m.memberId.toLowerCase().includes(txt)) || 
+                (m.name && m.name.toLowerCase().includes(txt)) || 
+                (m.area && m.area.toLowerCase().includes(txt)) || 
+                (m.mobile && m.mobile.includes(txt))
+            );
+            renderMembersDirectory(filtered);
+        });
+
         window.callMember = (mobile) => { let clean = mobile.replace(/\D/g,''); if(clean.length===10) clean='91'+clean; window.location.href=`tel:+${clean}`; };
         window.sendWhatsappReminder = (mobile, name, month) => { let clean = mobile.replace(/\D/g,''); if(clean.length===10) clean='91'+clean; window.open(`https://wa.me/${clean}?text=${encodeURIComponent(`🙏 *நாம் தமிழர் கட்சி*\n📌 காட்டுமன்னார்கோயில் சட்டமண்டரத்தொகுதி (தனி)\n💰 *சந்தா நினைவூட்டல்*\n\nவணக்கம் ${name},\n\n📅 ${month} மாத சந்தா தொகை இன்னும் செலுத்தப்படவில்லை.\nதயவுசெய்து உடனடியாக செலுத்துங்கள்.\n\n🤝 நன்றி!\n🔥 படைப்போம் புதிய அரசியல் வரலாறு!`)}`,'_blank'); };
         window.selectMemberForCollection = (firebaseId, manualId, name, mobile, area) => {
@@ -411,7 +472,7 @@
             if (!newManualId) { alert("Member ID cannot be empty"); return; }
             const oldMember = cachedMembers.find(m => m.id === firebaseId);
             if (oldMember && oldMember.memberId !== newManualId && cachedMembers.some(m => m.memberId === newManualId && m.id !== firebaseId)) {
-                alert("இந்த Member ID ஏற்கனவே உள்ளது. வேறு ID ஐ தேர்வு செய்யவும்.");
+                alert("இந்த Member ID ஏற்கனவே உள்ளது.");
                 return;
             }
             await updateDoc(doc(db, "members", firebaseId), {
@@ -436,7 +497,7 @@
         });
         window.deleteMember = async(id)=>{ if(confirm("Delete?")){ await deleteDoc(doc(db,"members",id)); loadMembersData(); loadCollectionsForStats(); } };
 
-        // EXPENSE
+        // EXPENSE (unchanged from previous working version)
         document.getElementById('form-expense').addEventListener('submit', async(e)=>{
             e.preventDefault();
             await addDoc(collection(db,"expenses"),{
@@ -493,7 +554,6 @@
             document.getElementById('collections-stream-container').innerHTML = html||'<p class="text-center py-4">No data</p>';
             window.currentCsvData=csv;
         }
-        // UPDATED WHATSAPP MESSAGE WITH ATTRACTIVE EMOJIS AND "தரவுப் பதிவாளர்"
         window.resendReceipt = async(id)=>{ 
             const d=(await getDoc(doc(db,"collections",id))).data(); 
             if(!d) return; 
@@ -533,7 +593,6 @@
         document.getElementById('btn-apply-filters').addEventListener('click',()=>loadCollectionsStream(document.getElementById('filter-month').value,document.getElementById('filter-area').value.trim()));
         document.getElementById('btn-export-csv').addEventListener('click',()=>{ if(window.currentCsvData?.length>1){ let csv="\uFEFF"+window.currentCsvData.map(row=>row.map(c=>`"${c}"`).join(",")).join("\n"); const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download=`NTK_Collection_Report_${new Date().toISOString().split('T')[0]}.csv`; a.click(); } else alert("No data"); });
         
-        // EXPENSE REPORT EXPORT
         document.getElementById('btn-export-expense-csv').addEventListener('click', async () => {
             const startDate = document.getElementById('expense-report-start').value;
             const endDate = document.getElementById('expense-report-end').value;
@@ -542,19 +601,10 @@
             if (endDate) filtered = filtered.filter(e => e.date <= endDate);
             if (filtered.length === 0) { alert("செலவுகள் எதுவும் இல்லை"); return; }
             const csvRows = [['காரணம்', 'குறிப்பு', 'தொகை (₹)', 'தேதி', 'பதிவாளர்']];
-            filtered.forEach(exp => {
-                csvRows.push([exp.purpose, exp.note || '', exp.amount, exp.date, exp.createdBy]);
-            });
+            filtered.forEach(exp => { csvRows.push([exp.purpose, exp.note || '', exp.amount, exp.date, exp.createdBy]); });
             const csvContent = "\uFEFF" + csvRows.map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
             const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-            const link = document.createElement("a");
-            const url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", `NTK_Expense_Report_${new Date().toISOString().split('T')[0]}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
+            const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `NTK_Expense_Report_${new Date().toISOString().split('T')[0]}.csv`; link.click(); URL.revokeObjectURL(link.href);
         });
 
         // COLLECTORS ADMIN
