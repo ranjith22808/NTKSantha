@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>NTK Santha Collection - Payment Status & Reminders</title>
+    <title>NTK Santha Collection - Manual Member ID Fixed</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="manifest" href="manifest.json">
@@ -18,7 +18,6 @@
         .version-badge { font-size: 9px; background: #334155; display: inline-block; padding: 2px 8px; border-radius: 30px; margin-left: 8px; }
         .status-paid { background: #22c55e; color: white; font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: bold; }
         .status-pending { background: #ef4444; color: white; font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: bold; }
-        .member-card-actions button { transition: all 0.2s; }
     </style>
 </head>
 <body class="bg-gray-100 font-sans pb-20">
@@ -45,7 +44,7 @@
     <!-- MAIN APP -->
     <div id="app-screen" class="hidden">
         <header class="bg-red-700 text-white shadow-md sticky top-0 z-40 px-4 py-3 text-center">
-            <h1 class="text-xl font-bold tracking-wide">நாம் தமிழர் கட்சி <span class="version-badge">v2.4.0 (Payment Status + Reminders)</span></h1>
+            <h1 class="text-xl font-bold tracking-wide">நாம் தமிழர் கட்சி <span class="version-badge">v2.5.0 (Manual ID Fixed)</span></h1>
             <p class="text-xs text-yellow-300 font-semibold">காட்டுமன்னார்கோவில் மண்டலம் (சந்தா வசூல்)</p>
             <div class="text-[10px] text-gray-200 mt-1 flex justify-between px-2">
                 <span id="user-display-name">கையாலர்: Loading...</span>
@@ -59,16 +58,16 @@
                 <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
                     <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2"><i class="fa-solid fa-money-bill-wave text-green-600 mr-2"></i>சந்தா வசூல் படிவம்</h3>
                     <div class="mb-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
-                        <label class="block text-xs font-bold text-gray-600 mb-1">உறுப்பினர் தேடல் (ID / பெயர் / எண் / ஊர்)</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">உறுப்பினர் தேடல் (Manual ID / பெயர் / எண் / ஊர்)</label>
                         <div class="flex gap-2">
-                            <input type="text" id="search-member-input" placeholder="Member ID, பெயர், எண், ஊர்..." class="w-full p-2 text-sm border rounded-lg bg-white">
+                            <input type="text" id="search-member-input" placeholder="Manual ID, பெயர், எண், ஊர்..." class="w-full p-2 text-sm border rounded-lg bg-white">
                         </div>
                         <div id="search-results-dropdown" class="mt-2 max-h-40 overflow-y-auto divide-y bg-white border rounded shadow-inner hidden"></div>
                     </div>
                     <form id="form-collection" class="space-y-3">
                         <input type="hidden" id="coll-member-firebase-id">
                         <div class="grid grid-cols-2 gap-2">
-                            <div><label class="block text-xs font-bold text-gray-700 mb-1">உறுப்பினர் ID *</label><input type="text" id="coll-member-code" readonly required class="w-full p-2.5 text-sm bg-gray-100 border rounded-lg font-mono"></div>
+                            <div><label class="block text-xs font-bold text-gray-700 mb-1">உறுப்பினர் ID (Manual) *</label><input type="text" id="coll-member-code" readonly required class="w-full p-2.5 text-sm bg-gray-100 border rounded-lg font-mono"></div>
                             <div><label class="block text-xs font-bold text-gray-700 mb-1">பெயர் *</label><input type="text" id="coll-name" readonly required class="w-full p-2.5 text-sm bg-gray-100 border rounded-lg font-semibold"></div>
                         </div>
                         <div><label class="block text-xs font-bold text-gray-700 mb-1">கைபேசி எண் *</label><input type="tel" id="coll-mobile" readonly required class="w-full p-2.5 text-sm bg-gray-100 border rounded-lg"></div>
@@ -83,12 +82,12 @@
                 </div>
             </section>
 
-            <!-- MEMBERS TAB with Payment Status & Action Buttons -->
+            <!-- MEMBERS TAB with Manual ID -->
             <section id="tab-members" class="tab-content space-y-4">
                 <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
                     <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2"><i class="fa-solid fa-user-plus text-blue-600 mr-2"></i>புதிய உறுப்பினர் சேர்க்கை</h3>
                     <form id="form-add-member" class="space-y-3">
-                        <div><label class="block text-xs font-bold text-gray-700 mb-1">உறுப்பினர் ID * (தனித்துவமானது)</label><input type="text" id="mem-id-manual" placeholder="எ.கா: NTK001, TN01-001" required class="w-full p-2.5 text-sm border rounded-lg bg-white font-mono"></div>
+                        <div><label class="block text-xs font-bold text-gray-700 mb-1">உறுப்பினர் ID (Manual) * (தனித்துவமானது)</label><input type="text" id="mem-id-manual" placeholder="எ.கா: NTK001, TN01-001" required class="w-full p-2.5 text-sm border rounded-lg bg-white font-mono"></div>
                         <div><label class="block text-xs font-bold text-gray-700 mb-1">பெயர் (Name) *</label><input type="text" id="mem-name" list="name-suggestions" required class="w-full p-2.5 text-sm border rounded-lg bg-white"><datalist id="name-suggestions"></datalist></div>
                         <div><label class="block text-xs font-bold text-gray-700 mb-1">கைபேசி எண் (Mobile) *</label><input type="tel" id="mem-mobile" placeholder="9176xxxxxx" required class="w-full p-2.5 text-sm border rounded-lg bg-white"></div>
                         <div><label class="block text-xs font-bold text-gray-700 mb-1">ஊர் / பகுதி (Area) *</label><input type="text" id="mem-area" list="area-suggestions" required class="w-full p-2.5 text-sm border rounded-lg bg-white"><datalist id="area-suggestions"></datalist></div>
@@ -96,8 +95,8 @@
                     </form>
                 </div>
                 <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
-                    <h3 class="text-md font-bold text-gray-800 mb-2">உறுப்பினர்கள் பட்டியல் (ID, பெயர், ஊர், நிலை)</h3>
-                    <input type="text" id="directory-search" placeholder="ID / பெயர் / ஊர் மூலம் தேடு..." class="w-full p-2 text-sm border rounded-lg mb-3">
+                    <h3 class="text-md font-bold text-gray-800 mb-2">உறுப்பினர்கள் பட்டியல் (Manual ID, பெயர், ஊர், நிலை)</h3>
+                    <input type="text" id="directory-search" placeholder="Manual ID / பெயர் / ஊர் மூலம் தேடு..." class="w-full p-2 text-sm border rounded-lg mb-3">
                     <div id="members-list-container" class="divide-y max-h-80 overflow-y-auto"></div>
                 </div>
             </section>
@@ -115,7 +114,7 @@
                     <button id="btn-export-csv" class="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold p-3 rounded-lg shadow flex justify-center items-center gap-2"><i class="fa-solid fa-file-excel"></i> மாதாந்திர அறிக்கை பதிவிறக்கு (CSV)</button>
                 </div>
                 <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
-                    <h3 class="text-sm font-bold text-gray-800 mb-2 flex justify-between"><span>சமீபத்திய வசூல் ஓட்டம் (Member ID உடன்)</span><span class="text-[10px] text-gray-400">🔁 கிளிக் செய்து மீண்டும் WhatsApp</span></h3>
+                    <h3 class="text-sm font-bold text-gray-800 mb-2 flex justify-between"><span>சமீபத்திய வசூல் ஓட்டம் (Manual ID உடன்)</span><span class="text-[10px] text-gray-400">🔁 கிளிக் செய்து மீண்டும் WhatsApp</span></h3>
                     <div id="collections-stream-container" class="divide-y max-h-60 overflow-y-auto text-xs"></div>
                 </div>
             </section>
@@ -151,7 +150,7 @@
         <div class="bg-white rounded-2xl w-full max-w-md mx-4 p-5 shadow-2xl animate-fade-in">
             <h3 class="text-lg font-bold border-b pb-2 mb-3"><i class="fa-solid fa-pen text-blue-600 mr-2"></i>உறுப்பினர் திருத்து</h3>
             <input type="hidden" id="edit-member-firebase-id">
-            <div class="mb-2"><label class="block text-xs font-bold">உறுப்பினர் ID (மாற்ற முடியாது)</label><input id="edit-member-code" readonly class="w-full p-2 bg-gray-100 border rounded font-mono text-sm"></div>
+            <div class="mb-2"><label class="block text-xs font-bold">உறுப்பினர் ID (Manual - மாற்ற முடியாது)</label><input id="edit-member-code" readonly class="w-full p-2 bg-gray-100 border rounded font-mono text-sm"></div>
             <div class="mb-3"><label class="block text-xs font-bold">பெயர்</label><input id="edit-member-name" class="w-full p-2 border rounded mt-1"></div>
             <div class="mb-3"><label class="block text-xs font-bold">கைபேசி</label><input id="edit-member-mobile" class="w-full p-2 border rounded mt-1"></div>
             <div class="mb-4"><label class="block text-xs font-bold">ஊர்</label><input id="edit-member-area" class="w-full p-2 border rounded mt-1"></div>
@@ -181,9 +180,9 @@
         const db = getFirestore(app);
 
         let currentUserProfile = null;
-        let cachedMembers = [];
-        let cachedCollections = []; // all collections for status calculation
-        let collectionsByMember = new Map(); // memberId -> array of months paid (YYYY-MM)
+        let cachedMembers = []; // each object: { id: firebaseDocId, memberId: manualId, name, mobile, area }
+        let cachedCollections = [];
+        let collectionsByMember = new Map(); // manual memberId -> Set of months paid
         let confirmationResult = null;
 
         window.setupRecaptcha = () => { window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'normal' }); };
@@ -203,6 +202,39 @@
         document.getElementById('btn-verify-otp').addEventListener('click', async () => { try { await confirmationResult.confirm(document.getElementById('login-otp').value.trim()); } catch(e){ document.getElementById('auth-error').innerText="தவறான OTP"; document.getElementById('auth-error').classList.remove('hidden'); } });
         document.getElementById('btn-logout').addEventListener('click', () => signOut(auth).then(() => location.reload()));
 
+        // Migration: Ensure all members have a manual memberId
+        async function migrateMissingMemberIds() {
+            const membersSnap = await getDocs(collection(db, "members"));
+            let counter = 1;
+            for (const docSnap of membersSnap.docs) {
+                const data = docSnap.data();
+                if (!data.memberId || data.memberId.trim() === "") {
+                    // Generate a sequential manual ID
+                    let newId = `NTK${String(counter).padStart(4, '0')}`;
+                    // Avoid collision (though unlikely)
+                    while (membersSnap.docs.some(d => d.data().memberId === newId)) {
+                        counter++;
+                        newId = `NTK${String(counter).padStart(4, '0')}`;
+                    }
+                    await updateDoc(doc(db, "members", docSnap.id), { memberId: newId });
+                    console.log(`Migrated member ${docSnap.id} with manual ID: ${newId}`);
+                    counter++;
+                }
+            }
+            // Also check if any collection documents are missing memberId field (optional but good)
+            const collSnap = await getDocs(collection(db, "collections"));
+            for (const docSnap of collSnap.docs) {
+                const data = docSnap.data();
+                if (!data.memberId && data.memberIdRef) {
+                    // try to fetch member by firebaseId
+                    const memberDoc = await getDoc(doc(db, "members", data.memberIdRef));
+                    if (memberDoc.exists() && memberDoc.data().memberId) {
+                        await updateDoc(doc(db, "collections", docSnap.id), { memberId: memberDoc.data().memberId });
+                    }
+                }
+            }
+        }
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 const snap = await getDoc(doc(db, "collectors", user.phoneNumber));
@@ -213,8 +245,12 @@
                     document.getElementById('user-display-name').innerText = `கையாலர்: ${currentUserProfile.name} (${currentUserProfile.role.toUpperCase()})`;
                     document.getElementById('coll-by').value = currentUserProfile.name;
                     if (currentUserProfile.role === 'admin') document.getElementById('nav-link-settings').classList.remove('hidden');
+                    
+                    // Run migration once to fix old records
+                    await migrateMissingMemberIds();
+                    
                     await loadMembersData();
-                    await loadAllCollectionsForStatus(); // load collections for status calculation
+                    await loadAllCollectionsForStatus();
                     loadCollectorsList();
                     loadCollectionsStream();
                     populateAllSuggestions();
@@ -224,25 +260,23 @@
             } else { document.getElementById('auth-screen').classList.remove('hidden'); document.getElementById('app-screen').classList.add('hidden'); }
         });
 
-        // Load all collections for payment status mapping
         async function loadAllCollectionsForStatus() {
             const snap = await getDocs(collection(db, "collections"));
             cachedCollections = snap.docs.map(d => d.data());
             collectionsByMember.clear();
             for (const coll of cachedCollections) {
                 const mid = coll.memberId;
-                if (!collectionsByMember.has(mid)) collectionsByMember.set(mid, new Set());
-                collectionsByMember.get(mid).add(coll.month);
+                if (mid) {
+                    if (!collectionsByMember.has(mid)) collectionsByMember.set(mid, new Set());
+                    collectionsByMember.get(mid).add(coll.month);
+                }
             }
-            // Re-render members if already loaded
             if (cachedMembers.length) renderMembersDirectory(cachedMembers);
         }
 
-        // Check if member paid for a given month (default current month)
         function isMemberPaidForMonth(memberId, yearMonth) {
             const paidMonths = collectionsByMember.get(memberId);
-            if (!paidMonths) return false;
-            return paidMonths.has(yearMonth);
+            return paidMonths ? paidMonths.has(yearMonth) : false;
         }
 
         function getCurrentYearMonth() {
@@ -258,7 +292,6 @@
             document.getElementById(btn.getAttribute('data-target')).classList.add('active');
         }));
 
-        // MEMBERS CRUD with Status & Action Buttons
         async function loadMembersData() {
             const snap = await getDocs(collection(db, "members"));
             cachedMembers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -272,23 +305,23 @@
             const isAdmin = currentUserProfile?.role === 'admin';
             const currentMonth = getCurrentYearMonth();
             container.innerHTML = arr.map(m => {
-                const paidStatus = isMemberPaidForMonth(m.memberId, currentMonth);
+                const manualId = m.memberId || "NO_ID";
+                const paidStatus = isMemberPaidForMonth(manualId, currentMonth);
                 const statusBadge = paidStatus ? '<span class="status-paid"><i class="fa-solid fa-check-circle mr-1"></i>Paid</span>' : '<span class="status-pending"><i class="fa-solid fa-clock mr-1"></i>Pending</span>';
-                const whatsappReminderMsg = encodeURIComponent(`வணக்கம் ${m.name}, \n\nநீங்கள் ${currentMonth} மாத சந்தா தொகையை இன்னும் செலுத்தவில்லை. தயவுசெய்து உடனடியாக செலுத்துங்கள். \n\nநன்றி! \nநாம் தமிழர் கட்சி - காட்டுமன்னார்கோவில் மண்டலம்`);
                 return `
                 <div class="py-3 flex justify-between items-start text-sm border-b">
                     <div class="flex-1">
                         <div class="flex items-center gap-2 flex-wrap">
-                            <span class="font-bold text-gray-800"><span class="text-blue-600 font-mono text-xs">${escapeHtml(m.memberId)}</span> - ${escapeHtml(m.name)}</span>
+                            <span class="font-bold text-gray-800"><span class="text-blue-600 font-mono text-xs">${escapeHtml(manualId)}</span> - ${escapeHtml(m.name)}</span>
                             ${statusBadge}
                         </div>
                         <p class="text-xs text-gray-500 mt-1">${escapeHtml(m.area)} | ${m.mobile}</p>
                     </div>
                     <div class="flex gap-2 items-center">
                         <button onclick="window.callMember('${m.mobile}')" class="text-green-600 hover:text-green-800 text-lg" title="Call"><i class="fa-solid fa-phone"></i></button>
-                        <button onclick="window.sendWhatsappReminder('${m.mobile}', '${m.name}', '${currentMonth}')" class="text-green-700 hover:text-green-900 text-lg" title="WhatsApp Reminder"><i class="fa-brands fa-whatsapp"></i></button>
-                        <button onclick="window.selectMemberForCollection('${m.id}','${escapeHtml(m.memberId)}','${escapeHtml(m.name)}','${m.mobile}','${escapeHtml(m.area)}')" class="bg-yellow-500 text-xs px-2 py-1 rounded font-bold">தேர்வு</button>
-                        ${isAdmin ? `<button onclick="window.openEditMemberModal('${m.id}','${escapeHtml(m.memberId)}','${escapeHtml(m.name)}','${m.mobile}','${escapeHtml(m.area)}')" class="text-blue-600 px-1"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="window.sendWhatsappReminder('${m.mobile}', '${escapeHtml(m.name)}', '${currentMonth}')" class="text-green-700 hover:text-green-900 text-lg" title="WhatsApp Reminder"><i class="fa-brands fa-whatsapp"></i></button>
+                        <button onclick="window.selectMemberForCollection('${m.id}','${escapeHtml(manualId)}','${escapeHtml(m.name)}','${m.mobile}','${escapeHtml(m.area)}')" class="bg-yellow-500 text-xs px-2 py-1 rounded font-bold">தேர்வு</button>
+                        ${isAdmin ? `<button onclick="window.openEditMemberModal('${m.id}','${escapeHtml(manualId)}','${escapeHtml(m.name)}','${m.mobile}','${escapeHtml(m.area)}')" class="text-blue-600 px-1"><i class="fa-solid fa-pen"></i></button>
                         <button onclick="window.deleteMember('${m.id}')" class="text-red-600 px-1"><i class="fa-solid fa-trash"></i></button>` : ''}
                     </div>
                 </div>`;
@@ -300,17 +333,15 @@
             if(!cleanPhone.startsWith('91') && cleanPhone.length === 10) cleanPhone = '91' + cleanPhone;
             window.location.href = `tel:+${cleanPhone}`;
         };
-
         window.sendWhatsappReminder = (mobile, name, month) => {
             let cleanPhone = mobile.replace(/[^0-9]/g, "");
             if(!cleanPhone.startsWith('91') && cleanPhone.length === 10) cleanPhone = '91' + cleanPhone;
             const message = `வணக்கம் ${name}, \n\nநீங்கள் ${month} மாத சந்தா தொகையை இன்னும் செலுத்தவில்லை. தயவுசெய்து உடனடியாக செலுத்துங்கள். \n\nநன்றி! \nநாம் தமிழர் கட்சி - காட்டுமன்னார்கோவில் மண்டலம்`;
             window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
         };
-
-        window.selectMemberForCollection = (firebaseId, memberCode, name, mobile, area) => {
+        window.selectMemberForCollection = (firebaseId, manualId, name, mobile, area) => {
             document.getElementById('coll-member-firebase-id').value = firebaseId;
-            document.getElementById('coll-member-code').value = memberCode;
+            document.getElementById('coll-member-code').value = manualId;
             document.getElementById('coll-name').value = name;
             document.getElementById('coll-mobile').value = mobile;
             document.getElementById('coll-area').value = area;
@@ -335,12 +366,12 @@
             alert(`உறுப்பினர் சேர்க்கப்பட்டார்! ID: ${manualId}`);
             document.getElementById('form-add-member').reset();
             await loadMembersData();
-            await loadAllCollectionsForStatus(); // refresh status map
+            await loadAllCollectionsForStatus();
         });
         
-        window.openEditMemberModal = (firebaseId, memberCode, name, mobile, area) => {
+        window.openEditMemberModal = (firebaseId, manualId, name, mobile, area) => {
             document.getElementById('edit-member-firebase-id').value = firebaseId;
-            document.getElementById('edit-member-code').value = memberCode;
+            document.getElementById('edit-member-code').value = manualId;
             document.getElementById('edit-member-name').value = name;
             document.getElementById('edit-member-mobile').value = mobile;
             document.getElementById('edit-member-area').value = area;
@@ -359,7 +390,7 @@
         });
         window.deleteMember = async (firebaseId) => { if(confirm("உறுப்பினரை நீக்க வேண்டுமா?")) { await deleteDoc(doc(db, "members", firebaseId)); loadMembersData(); loadAllCollectionsForStatus(); } };
         
-        // Search with member ID
+        // Search
         document.getElementById('search-member-input').addEventListener('input', (e) => {
             const txt = e.target.value.toLowerCase();
             const dd = document.getElementById('search-results-dropdown');
@@ -373,9 +404,9 @@
             else dd.innerHTML = `<p class="p-2 text-xs text-gray-400">யாரும் இல்லை</p>`;
             dd.classList.remove('hidden');
         });
-        window.selectMemberFromDropdown = (firebaseId, memberCode, name, mobile, area) => { 
+        window.selectMemberFromDropdown = (firebaseId, manualId, name, mobile, area) => { 
             document.getElementById('search-results-dropdown').classList.add('hidden'); 
-            selectMemberForCollection(firebaseId, memberCode, name, mobile, area); 
+            selectMemberForCollection(firebaseId, manualId, name, mobile, area); 
         };
         document.getElementById('directory-search').addEventListener('input', (e) => { 
             const txt = e.target.value.toLowerCase(); 
@@ -391,7 +422,7 @@
             const q = query(collection(db, "collections"), orderBy("date", "desc"));
             const snap = await getDocs(q);
             let totalAmt = 0, count = 0, streamHtml = '';
-            let csvRows = [['Member ID','பெயர்','கைபேசி','ஊர்','மாதம்','தொகை','வசூலித்தவர்','தேதி']];
+            let csvRows = [['Manual Member ID','பெயர்','கைபேசி','ஊர்','மாதம்','தொகை','வசூலித்தவர்','தேதி']];
             snap.forEach(docSnap => {
                 const data = docSnap.data();
                 if(filterMonth && data.month !== filterMonth) return;
@@ -444,7 +475,7 @@
             document.getElementById('coll-by').value = currentUserProfile.name;
             const today = new Date();
             document.getElementById('coll-month').value = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
-            await loadAllCollectionsForStatus(); // refresh status map
+            await loadAllCollectionsForStatus();
             loadCollectionsStream();
         });
         
