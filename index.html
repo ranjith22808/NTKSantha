@@ -54,15 +54,15 @@
     <!-- MAIN APP -->
     <div id="app-screen" class="hidden">
         <header class="bg-red-700 text-white shadow-md sticky top-0 z-40 px-4 py-2 text-center">
-            <h1 class="text-lg font-bold tracking-wide">நாம் தமிழர் கட்சி <span class="version-badge">v3.5 (Member Stats + Collection Edit/Delete)</span></h1>
+            <h1 class="text-lg font-bold tracking-wide">நாம் தமிழர் கட்சி <span class="version-badge">v3.6</span></h1>
             <p class="text-[11px] text-yellow-300 font-semibold">காட்டுமன்னார்கோயில் சட்டமன்றத் தொகுதி (தனி)</p>
             <div class="text-[10px] text-gray-200 mt-1 flex justify-between px-2">
-                <span id="user-display-name">கையாலர்: Loading...</span>
+                <span id="user-display-name">தரவுப் பதிவாளர்: Loading...</span>
                 <button id="btn-logout" class="underline text-yellow-300">வெளியேற</button>
             </div>
         </header>
 
-        <!-- Global Stats Bar (Collection, Expense, Balance) -->
+        <!-- Global Stats Bar -->
         <div class="max-w-md mx-auto px-4 pt-3 pb-1">
             <div class="grid grid-cols-3 gap-2">
                 <div class="bg-green-100 rounded-xl p-2 text-center shadow stats-card">
@@ -100,7 +100,7 @@
                         <div><label class="block text-xs font-bold text-gray-700 mb-1">ஊர் / பகுதி</label><input type="text" id="coll-area" readonly class="w-full p-2.5 text-sm bg-gray-100 border rounded-lg"></div>
                         <div class="grid grid-cols-2 gap-2">
                             <div><label class="block text-xs font-bold text-gray-700 mb-1">சந்தா மாதம்</label><input type="month" id="coll-month" required class="w-full p-2.5 text-sm border rounded-lg bg-white"></div>
-                            <div><label class="block text-xs font-bold text-gray-700 mb-1">தொகை (₹)</label><input type="number" id="coll-amount" value="200" min="100" max="200" step="10" required class="w-full p-2.5 text-sm border rounded-lg bg-white font-bold text-green-700"></div>
+                            <div><label class="block text-xs font-bold text-gray-700 mb-1">தொகை (₹) *</label><input type="number" id="coll-amount" value="200" required class="w-full p-2.5 text-sm border rounded-lg bg-white font-bold text-green-700"></div>
                         </div>
                         <div><label class="block text-xs font-bold text-gray-700 mb-1">வசூலிப்பவர்</label><input type="text" id="coll-by" readonly class="w-full p-2.5 text-sm bg-gray-100 border rounded-lg"></div>
                         <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold p-3 rounded-lg shadow flex justify-center items-center gap-2"><i class="fa-solid fa-receipt"></i> ரசீது சேமி & வாட்ஸ்அப் அனுப்பவும்</button>
@@ -108,7 +108,7 @@
                 </div>
             </section>
 
-            <!-- MEMBERS TAB with Stats Row -->
+            <!-- MEMBERS TAB -->
             <section id="tab-members" class="tab-content space-y-4">
                 <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
                     <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2"><i class="fa-solid fa-users text-blue-600 mr-2"></i>உறுப்பினர் புள்ளிவிவரங்கள்</h3>
@@ -173,7 +173,7 @@
                 </div>
             </section>
 
-            <!-- REPORTS TAB with Collection Edit/Delete -->
+            <!-- REPORTS TAB -->
             <section id="tab-reports" class="tab-content space-y-4">
                 <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
                     <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2"><i class="fa-solid fa-chart-line text-purple-600 mr-2"></i>வசூல் அறிக்கைகள்</h3>
@@ -203,14 +203,14 @@
                 <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
                     <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2"><i class="fa-solid fa-user-gear text-red-600 mr-2"></i>நிர்வாக அமைப்புகள்</h3>
                     <form id="form-add-collector" class="space-y-3">
-                        <div><label class="block text-xs font-bold">கையாலர் பெயர் *</label><input type="text" id="coll-new-name" required class="w-full p-2.5 text-sm border rounded-lg"></div>
+                        <div><label class="block text-xs font-bold">தரவுப் பதிவாளர் பெயர் *</label><input type="text" id="coll-new-name" required class="w-full p-2.5 text-sm border rounded-lg"></div>
                         <div><label class="block text-xs font-bold">கைபேசி எண் (+91) *</label><input type="tel" id="coll-new-mobile" value="+91" required class="w-full p-2.5 text-sm border rounded-lg"></div>
                         <div><label class="block text-xs font-bold">நிலை (Role)</label><select id="coll-new-role" class="w-full p-2.5 text-sm border rounded-lg"><option value="collector">வசூலிப்பவர்</option><option value="admin">முழு நிர்வாகி</option></select></div>
                         <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold p-2.5 rounded-lg shadow text-sm">புதிய கணக்கை உருவாக்கு</button>
                     </form>
                 </div>
                 <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
-                    <h3 class="text-sm font-bold text-gray-800 mb-2">அங்கீகரிக்கப்பட்ட பொறுப்பாளர்கள்</h3>
+                    <h3 class="text-sm font-bold text-gray-800 mb-2">அங்கீகரிக்கப்பட்ட தரவுப் பதிவாளர்கள்</h3>
                     <div id="collectors-list-container" class="divide-y text-xs"></div>
                 </div>
             </section>
@@ -227,7 +227,7 @@
         </nav>
     </div>
 
-    <!-- MODALS: Edit Member, Edit Collection, Edit Expense, Edit Collector -->
+    <!-- MODALS -->
     <div id="edit-member-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay" onclick="if(event.target===this) closeModals()">
         <div class="bg-white rounded-2xl w-full max-w-md mx-4 p-5 shadow-2xl animate-fade-in">
             <h3 class="text-lg font-bold border-b pb-2 mb-3"><i class="fa-solid fa-pen text-blue-600 mr-2"></i>உறுப்பினர் திருத்து</h3>
@@ -261,7 +261,7 @@
     </div>
     <div id="edit-collector-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay" onclick="if(event.target===this) closeModals()">
         <div class="bg-white rounded-2xl w-full max-w-md mx-4 p-5 shadow-2xl animate-fade-in">
-            <h3 class="text-lg font-bold border-b pb-2 mb-3"><i class="fa-solid fa-user-cog text-orange-600 mr-2"></i>கையாளர் திருத்து</h3>
+            <h3 class="text-lg font-bold border-b pb-2 mb-3"><i class="fa-solid fa-user-cog text-orange-600 mr-2"></i>தரவுப் பதிவாளர் திருத்து</h3>
             <input type="hidden" id="edit-collector-phone">
             <div class="mb-3"><label class="block text-xs font-bold">பெயர்</label><input id="edit-collector-name" class="w-full p-2 border rounded"></div>
             <div class="mb-4"><label class="block text-xs font-bold">Role</label><select id="edit-collector-role" class="w-full p-2 border rounded"><option value="collector">Collector</option><option value="admin">Admin</option></select></div>
@@ -284,9 +284,9 @@
         let currentUserProfile = null;
         let cachedMembers = [];
         let cachedExpenses = [];
-        let cachedCollections = []; // store full collection objects for edit/delete
+        let cachedCollections = [];
         let totalCollected = 0, totalSpent = 0;
-        let collectionsByMember = new Map(); // manual memberId -> Set of months paid
+        let collectionsByMember = new Map();
 
         window.setupRecaptcha = () => { window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'normal' }); };
         window.addEventListener('DOMContentLoaded', () => setupRecaptcha());
@@ -371,7 +371,6 @@
             document.getElementById('stat-unpaid-members').innerText = totalMembers - paidCount;
         }
 
-        // Download helpers for member stats
         function downloadMembersCSV(membersArray, filename) {
             if (!membersArray.length) { alert("தரவுகள் இல்லை"); return; }
             const headers = ['Member ID', 'பெயர்', 'கைபேசி எண்', 'ஊர்'];
@@ -381,7 +380,6 @@
             const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `${filename}.csv`; link.click(); URL.revokeObjectURL(link.href);
         }
 
-        // Event listeners for stat cards
         document.getElementById('stat-total-members-card').addEventListener('click', () => downloadMembersCSV(cachedMembers, 'Total_Members'));
         document.getElementById('stat-paid-members-card').addEventListener('click', () => {
             const currentMonth = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
@@ -401,7 +399,7 @@
                     currentUserProfile = { ...snap.data(), phone: user.phoneNumber };
                     document.getElementById('auth-screen').classList.add('hidden');
                     document.getElementById('app-screen').classList.remove('hidden');
-                    document.getElementById('user-display-name').innerText = `கையாலர்: ${currentUserProfile.name} (${currentUserProfile.role.toUpperCase()})`;
+                    document.getElementById('user-display-name').innerText = `தரவுப் பதிவாளர்: ${currentUserProfile.name} (${currentUserProfile.role.toUpperCase()})`;
                     document.getElementById('coll-by').value = currentUserProfile.name;
                     if (currentUserProfile.role === 'admin') document.getElementById('nav-link-settings').classList.remove('hidden');
                     await migrateMemberIds();
@@ -531,7 +529,7 @@
         });
         window.deleteMember = async(id)=>{ if(confirm("Delete?")){ await deleteDoc(doc(db,"members",id)); await loadMembersData(); await loadCollectionsForStats(); } };
 
-        // EXPENSE (unchanged)
+        // EXPENSE
         document.getElementById('form-expense').addEventListener('submit', async(e)=>{
             e.preventDefault();
             await addDoc(collection(db,"expenses"),{ purpose: document.getElementById('expense-purpose').value.trim(), note: document.getElementById('expense-note').value.trim(), amount: Number(document.getElementById('expense-amount').value), date: document.getElementById('expense-date').value, createdBy: currentUserProfile.name, createdAt: new Date().toISOString() });
@@ -555,7 +553,7 @@
         document.getElementById('btn-filter-expense').addEventListener('click',()=> renderExpenseList(document.getElementById('filter-expense-purpose').value, document.getElementById('filter-expense-date').value));
         document.getElementById('btn-reset-expense').addEventListener('click',()=>{ document.getElementById('filter-expense-purpose').value=''; document.getElementById('filter-expense-date').value=''; renderExpenseList(); });
 
-        // COLLECTION STREAM with Edit/Delete for admin
+        // COLLECTION STREAM with Edit/Delete
         async function loadCollectionsStream(filterMonth='', filterArea=''){
             let items = [...cachedCollections];
             if(filterMonth) items = items.filter(c => c.month === filterMonth);
